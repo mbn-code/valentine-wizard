@@ -422,20 +422,33 @@ function WizardContent() {
                     <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-xs font-mono text-left">
                       {generatedLink}
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-col gap-3">
                       <button 
                         onClick={copyToClipboard}
-                        className="flex-grow flex items-center justify-center gap-2 py-4 bg-valentine-red text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-all"
+                        className="w-full flex items-center justify-center gap-2 py-4 bg-valentine-red text-white rounded-xl font-bold shadow-lg hover:scale-[1.02] transition-all"
                       >
                         {copied ? <Check size={20} /> : <Copy size={20} />}
-                        {copied ? 'Copied!' : 'Copy Shareable Link'}
+                        {copied ? 'Link Copied!' : 'Copy Sanctuary Link'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                            const text = `I just created a digital Valentine sanctuary for you! Check it out: ${generatedLink}`;
+                            if (navigator.share) {
+                                navigator.share({ title: 'Valentine Sanctuary', text, url: generatedLink });
+                            } else {
+                                copyToClipboard();
+                            }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-valentine-red text-valentine-red rounded-xl font-bold hover:bg-valentine-red/5 transition-all text-sm"
+                      >
+                        <Zap size={16} className="fill-current" /> Share via Socials
                       </button>
                       <a 
                         href={generatedLink}
                         target="_blank"
-                        className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-valentine-red text-valentine-red rounded-xl font-bold hover:bg-valentine-red/5 transition-all text-sm"
+                        className="w-full text-center text-xs text-valentine-soft underline mt-2"
                       >
-                        Preview
+                        Preview Sanctuary
                       </a>
                     </div>
                   </div>
