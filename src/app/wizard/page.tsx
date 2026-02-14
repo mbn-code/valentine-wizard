@@ -19,6 +19,7 @@ function WizardContent() {
 
   const [step, setStep] = useState(success ? 8 : 1);
   const [isPaying, setIsPaying] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(success && !!sessionId);
   const [uploading, setUploading] = useState<string | null>(null); // tracks which field is uploading
   
@@ -170,6 +171,40 @@ function WizardContent() {
     navigator.clipboard.writeText(generatedLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm("⚠️ WARNING: Irreversible Action\n\nThis will permanently delete all uploaded photos and videos. Your shared link will break immediately.\n\nThis action cannot be reversed and no refunds will be provided. Are you absolutely sure?");
+    
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+        const urls = [];
+        if (config.backgroundUrl) urls.push(config.backgroundUrl);
+        if (config.videoUrl) urls.push(config.videoUrl);
+        if (config.galleryImages) {
+            Object.values(config.galleryImages).forEach(dayImages => {
+                urls.push(...dayImages);
+            });
+        }
+
+        if (urls.length > 0) {
+            await fetch('/api/delete-blobs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls })
+            });
+        }
+
+        alert("Sanctuary assets deleted successfully.");
+        window.location.href = '/wizard'; // Reset
+    } catch (e) {
+        console.error(e);
+        alert("Failed to delete some assets. Please try again.");
+    } finally {
+        setIsDeleting(false);
+    }
   };
 
   const steps = [
@@ -717,6 +752,20 @@ function WizardContent() {
                       >
                         Preview Sanctuary
                       </a>
+                      
+                      <div className="pt-8 border-t border-valentine-pink/10 mt-4">
+                        <button 
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="w-full flex items-center justify-center gap-2 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-all text-xs font-bold uppercase tracking-widest"
+                        >
+                            {isDeleting ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}
+                            Delete Sanctuary Permanently
+                        </button>
+                        <p className="text-[10px] text-valentine-soft mt-2 italic text-center">
+                            * Deleting is destructive and irreversible. No refunds provided.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
