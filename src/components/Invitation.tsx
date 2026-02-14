@@ -41,11 +41,9 @@ const Invitation = ({ onComplete }: InvitationProps) => {
     const btnHeight = 50;
     const padding = 20;
     
-    // Calculate available space
     const maxWidth = window.innerWidth - btnWidth - padding;
     const maxHeight = window.innerHeight - btnHeight - padding;
     
-    // Random position within screen bounds
     const x = Math.random() * (maxWidth - padding) + padding - (window.innerWidth / 2 - btnWidth / 2);
     const y = Math.random() * (maxHeight - padding) + padding - (window.innerHeight / 2 - btnHeight / 2);
     
@@ -175,12 +173,12 @@ const Invitation = ({ onComplete }: InvitationProps) => {
               {isTrackUnlocked(14) ? "Entering your sanctuary..." : "Come back on Feb 14th for your full experience..."}
             </p>
             
-            {config?.plan === 'free' && (
+            {config?.plan === 'spark' && (
               <div className="pt-12 space-y-2">
-                <p className="text-[10px] text-valentine-soft uppercase tracking-[0.2em] font-bold">Powered by Valentine Wizard</p>
+                <p className="text-[10px] text-valentine-soft uppercase tracking-[0.2em] font-bold text-gray-800">Powered by Valentine Wizard</p>
                 <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft opacity-50">
-                  <Link href="/privacy">Privacy</Link>
-                  <Link href="/terms">Terms</Link>
+                  <Link href="/privacy" className="text-gray-800">Privacy</Link>
+                  <Link href="/terms" className="text-gray-800">Terms</Link>
                 </div>
               </div>
             )}

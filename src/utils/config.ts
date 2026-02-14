@@ -5,7 +5,7 @@ import LZString from 'lz-string';
  * This is what gets encrypted and stored in the URL.
  */
 export interface ValentineConfig {
-  plan: 'free' | 'plus' | 'infinite';
+  plan: 'spark' | 'plus' | 'infinite';
   names: {
     partner1: string;
     partner2: string;

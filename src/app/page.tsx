@@ -60,54 +60,53 @@ export default function Home() {
         {/* Pricing Section */}
         <section id="pricing" className="py-24 px-8 bg-white text-gray-800">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center">Compare the Tiers</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center">Pricing</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
-              {/* Free Plan */}
+              {/* Spark Plan */}
               <div className="p-8 rounded-3xl border-2 border-valentine-pink/20 flex flex-col text-left hover:border-valentine-pink transition-all">
                 <h3 className="text-xl font-bold text-valentine-red mb-2">The Spark</h3>
-                <div className="text-3xl font-bold text-valentine-red mb-6">$0</div>
+                <div className="text-3xl font-bold text-valentine-red mb-6">$2.00</div>
                 <ul className="space-y-3 mb-8 flex-grow text-sm text-gray-800">
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 1 Day Countdown</li>
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 5 Secret Notes</li>
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Invitation Game</li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 3 Memory Photos</li>
-                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> Default Cinema Video</li>
-                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> "Valentine Wizard" Branding</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 10 Memory Photos</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Background</li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> No Cinema Video</li>
                 </ul>
-                <Link href="/wizard?plan=free" className="w-full py-3 text-center border-2 border-valentine-red text-valentine-red rounded-xl font-bold text-sm">Get Started</Link>
+                <Link href="/wizard?plan=spark" className="w-full py-3 text-center border-2 border-valentine-red text-valentine-red rounded-xl font-bold text-sm">Start Small</Link>
               </div>
 
               {/* Plus Plan */}
               <div className="p-8 rounded-3xl border-2 border-valentine-red relative flex flex-col text-left bg-white shadow-xl scale-105 z-10 border-t-8">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-valentine-red text-white px-4 py-1 rounded-full font-bold text-xs uppercase tracking-widest shadow-md">Best Seller</div>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-valentine-red text-white px-4 py-1 rounded-full font-bold text-xs uppercase tracking-widest shadow-md">Popular</div>
                 <h3 className="text-xl font-bold text-valentine-red mb-2 mt-2">The Romance</h3>
-                <div className="text-3xl font-bold text-valentine-red mb-6">$4.99</div>
+                <div className="text-3xl font-bold text-valentine-red mb-6">$7.00</div>
                 <ul className="space-y-3 mb-8 flex-grow text-sm text-gray-800">
                   <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>7 Day</b> Countdown</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>15</b> Secret Notes</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>Unlimited</b> Photos</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> Custom Background</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>25</b> Secret Notes</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>30</b> Memory Photos</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> All Premium Features</li>
                   <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> Music for every day</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>No Watermark</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> No Cinema Video</li>
                 </ul>
-                <Link href="/wizard?plan=plus" className="w-full py-4 text-center bg-valentine-red text-white rounded-xl font-bold shadow-lg">Go Pro</Link>
+                <Link href="/wizard?plan=plus" className="w-full py-4 text-center bg-valentine-red text-white rounded-xl font-bold shadow-lg">Go Romance</Link>
               </div>
 
               {/* Infinite Plan */}
               <div className="p-8 rounded-3xl border-2 border-valentine-pink/20 flex flex-col text-left hover:border-valentine-pink transition-all">
                 <h3 className="text-xl font-bold text-valentine-red mb-2">The Sanctuary</h3>
-                <div className="text-3xl font-bold text-valentine-red mb-6">$9.99</div>
-                <ul className="space-y-3 mb-8 flex-grow text-sm">
+                <div className="text-3xl font-bold text-valentine-red mb-6">$12.00</div>
+                <ul className="space-y-3 mb-8 flex-grow text-sm text-gray-800">
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>14 Day</b> Journey</li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Unlimited</b> Notes</li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Bulk Photo Gallery</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Cinema (Video)</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Passcodes</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Background</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Priority Processing</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>500</b> Secret Notes</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>50</b> Memory Photos</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Secret Cinema (Video)</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Passcodes</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Background</li>
                 </ul>
-                <Link href="/wizard?plan=infinite" className="w-full py-3 text-center border-2 border-valentine-pink text-valentine-soft rounded-xl font-bold text-sm">Go Infinite</Link>
+                <Link href="/wizard?plan=infinite" className="w-full py-3 text-center border-2 border-valentine-pink text-valentine-soft rounded-xl font-bold text-sm">Full Sanctuary</Link>
               </div>
             </div>
           </div>
@@ -128,11 +127,11 @@ export default function Home() {
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
                 <h3 className="font-bold text-valentine-red mb-2 italic">Can I get a refund?</h3>
-                <p className="text-sm text-valentine-soft">Due to the immediate processing and hosting of your media assets, all sales are final. Please use the free tier to test the experience first!</p>
+                <p className="text-sm text-valentine-soft">Due to the immediate processing and hosting of your media assets, all sales are final.</p>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
                 <h3 className="font-bold text-valentine-red mb-2 italic">What happens to my photos?</h3>
-                <p className="text-sm text-valentine-soft">Your photos are stored securely. You can permanently delete them at any time using the delete button in the Wizard.</p>
+                <p className="text-sm text-valentine-soft">Your photos are stored securely. You can permanently delete them at any time using the revoke page.</p>
               </div>
             </div>
           </div>

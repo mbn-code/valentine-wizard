@@ -15,8 +15,9 @@ export async function POST(req: Request) {
     const { plan, config } = await req.json();
 
     const prices: Record<string, { amount: number; name: string }> = {
-      plus: { amount: 499, name: 'The Romance Plan' },
-      infinite: { amount: 999, name: 'The Sanctuary Plan' },
+      spark: { amount: 200, name: 'The Spark Plan' },
+      plus: { amount: 700, name: 'The Romance Plan' },
+      infinite: { amount: 1200, name: 'The Sanctuary Plan' },
     };
 
     const selectedPlan = prices[plan];

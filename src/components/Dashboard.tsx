@@ -106,7 +106,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (config?.signature && config.plan !== 'free') {
+    if (config?.signature) {
         const verify = async () => {
             try {
                 const partnerNames = `${config.names.partner1}:${config.names.partner2}`;
@@ -330,17 +330,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {config.plan !== 'free' ? (
-            <Gallery />
-        ) : (
-            <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
-                <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
-                <h3 className="text-xl font-bold text-valentine-red mb-2 text-gray-800">Unlock the Photo Gallery?</h3>
-                <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to share your favorite memories!</p>
-                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block text-sm">View Plans</Link>
-            </div>
-        )}
-
+        <Gallery />
         <SecretCinema />
 
         <div className="pt-20 pb-10 text-center opacity-30 hover:opacity-100 transition-opacity">
@@ -350,11 +340,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {config.plan === 'free' && (
+      {config.plan === 'spark' && (
         <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50 text-gray-800">
             <p className="text-[10px] uppercase tracking-[0.2em] text-valentine-soft font-bold flex items-center justify-center gap-2">
                 Created with <span className="text-valentine-red">Valentine Wizard</span>
-                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours free →</Link>
+                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Upgrade yours →</Link>
             </p>
             <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft mt-1 opacity-50">
               <Link href="/privacy" className="hover:text-valentine-red text-gray-800">Privacy</Link>
