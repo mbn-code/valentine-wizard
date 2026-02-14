@@ -342,6 +342,12 @@ const Dashboard = () => {
         )}
 
         <SecretCinema />
+
+        <div className="pt-20 pb-10 text-center opacity-30 hover:opacity-100 transition-opacity">
+            <Link href="/revoke" className="text-[10px] uppercase tracking-widest font-bold text-valentine-soft hover:text-red-500">
+                Revoke Sanctuary Access
+            </Link>
+        </div>
       </div>
 
       {config.plan === 'free' && (
@@ -353,6 +359,7 @@ const Dashboard = () => {
             <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft mt-1 opacity-50">
               <Link href="/privacy" className="hover:text-valentine-red text-gray-800">Privacy</Link>
               <Link href="/terms" className="hover:text-valentine-red text-gray-800">Terms</Link>
+              <Link href="/revoke" className="hover:text-red-500 text-gray-800">Revoke</Link>
             </div>
         </div>
       )}
