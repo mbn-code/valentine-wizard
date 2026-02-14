@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Heart, Music } from 'lucide-react';
 import { useValentine } from '@/utils/ValentineContext';
+import { isTrackUnlocked } from '@/utils/date';
 import Link from 'next/link';
 
 interface InvitationProps {
@@ -171,7 +172,7 @@ const Invitation = ({ onComplete }: InvitationProps) => {
               </motion.div>
             </div>
             <p className="text-lg font-medium text-valentine-red animate-pulse">
-              Come back on Feb 14th for your full experience...
+              {isTrackUnlocked(14) ? "Entering your sanctuary..." : "Come back on Feb 14th for your full experience..."}
             </p>
             
             {config?.plan === 'free' && (

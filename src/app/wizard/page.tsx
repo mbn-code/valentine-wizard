@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2, Plus, Trash2, FileText, Upload } from 'lucide-react';
+import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2, Plus, Trash2, FileText, Upload, Shield } from 'lucide-react';
 import { ValentineConfig, encodeConfig } from '@/utils/config';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -807,11 +807,17 @@ function WizardContent() {
                 disabled={isPaying || !!uploading}
                 className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-sm disabled:opacity-50"
               >
-                {isPaying ? <Loader2 className="animate-spin" size={18} /> : (config.plan === 'free' || success ? <Save size={18} /> : <Star size={18} />)}
-                {isPaying ? 'Processing...' : (config.plan === 'free' || success ? 'Finish Sanctuary' : `Upgrade & Finish`)}
+                {isPaying ? <Loader2 className="animate-spin" size={18} /> : (config.plan === 'free' || success ? <Save size={18} /> : <Lock size={18} />)}
+                {isPaying ? 'Processing...' : (config.plan === 'free' || success ? 'Finish Sanctuary' : `Secure Checkout & Finish`)}
               </button>
             )}
           </div>
+        )}
+        {step < 7 && config.plan !== 'free' && !success && (
+            <div className="p-2 bg-gray-50 flex items-center justify-center gap-4 text-[10px] text-valentine-soft border-t border-valentine-pink/5 opacity-60">
+                <span className="flex items-center gap-1"><Shield size={10} /> Secure Stripe Payment</span>
+                <span className="flex items-center gap-1"><Check size={10} /> One-time purchase</span>
+            </div>
         )}
       </div>
     </main>
