@@ -190,10 +190,11 @@ function WizardContent() {
         }
 
         if (urls.length > 0) {
+            const encodedConfig = encodeConfig(config);
             await fetch('/api/delete-blobs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ urls })
+                body: JSON.stringify({ urls, config: encodedConfig })
             });
         }
 

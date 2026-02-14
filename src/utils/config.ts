@@ -21,6 +21,7 @@ export interface ValentineConfig {
   videoUrl?: string;
   backgroundUrl?: string;
   galleryImages?: Record<string, string[]>; // "dayX" -> array of image URLs
+  deletionSecret?: string;
 }
 
 export function encodeConfig(config: ValentineConfig): string {

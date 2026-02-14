@@ -5,6 +5,19 @@ export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
 
   try {
+    const origin = request.headers.get('origin');
+    const allowedOrigins = [
+      'https://valentize.vercel.app',
+      'https://valentine-wizard.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002'
+    ];
+
+    if (process.env.NODE_ENV === 'production' && origin && !allowedOrigins.includes(origin)) {
+      return NextResponse.json({ error: 'Unauthorized origin' }, { status: 403 });
+    }
+
     const jsonResponse = await handleUpload({
       body,
       request,
@@ -14,18 +27,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       ) => {
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime', 'image/webp'],
-          addRandomSuffix: true, // Ensure unique filenames even if users upload files with same names
+          addRandomSuffix: true,
           tokenPayload: JSON.stringify({}),
         };
       },
-      // Removed onUploadCompleted to avoid callback URL issues on localhost
     });
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 400 }, // The client will receive this error
+      { status: 400 },
     );
   }
 }
