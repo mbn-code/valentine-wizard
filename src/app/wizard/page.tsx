@@ -961,18 +961,18 @@ function WizardContent() {
       <AnimatePresence>
         {isPreviewing && (
             <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[2000] bg-valentine-cream overflow-y-auto"
             >
-                <div className="sticky top-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-b border-valentine-pink/20 flex justify-between items-center z-[2100]">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="text-valentine-red" size={20} />
-                        <span className="text-xs font-bold text-valentine-red uppercase tracking-widest">Live Preview Mode</span>
+                <div className="fixed top-4 left-4 right-4 p-2 bg-white/95 backdrop-blur-md border-2 border-valentine-red rounded-2xl flex justify-between items-center z-[3000] shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-2 pl-2 text-gray-800">
+                        <Sparkles className="text-valentine-red" size={18} />
+                        <span className="text-[10px] md:text-xs font-bold text-valentine-red uppercase tracking-widest">Live Preview Mode</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                        <label className="hidden sm:flex items-center gap-2 cursor-pointer group text-gray-800">
                             <div className="relative">
                                 <input 
                                     type="checkbox" 
@@ -986,10 +986,10 @@ function WizardContent() {
                                         setPreviewRefreshKey(prev => prev + 1);
                                     }}
                                 />
-                                <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-valentine-red transition-all shadow-inner"></div>
-                                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:left-6 transition-all shadow-md"></div>
+                                <div className="w-8 h-4 bg-gray-300 rounded-full peer peer-checked:bg-valentine-red transition-all shadow-inner"></div>
+                                <div className="absolute left-1 top-1 w-2 h-2 bg-white rounded-full peer-checked:left-5 transition-all shadow-md"></div>
                             </div>
-                            <span className="text-[10px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Force Unlock All</span>
+                            <span className="text-[8px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Unlock All</span>
                         </label>
                         <button 
                             onClick={() => {
@@ -997,9 +997,9 @@ function WizardContent() {
                                 setPreviewConfig(null);
                                 localStorage.removeItem('debug_unlock_all');
                             }}
-                            className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg text-xs uppercase tracking-widest hover:scale-105 transition-all"
+                            className="px-6 py-2 bg-valentine-red text-white rounded-xl font-bold shadow-lg text-xs uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
                         >
-                            Close Preview
+                            <ArrowLeft size={14} /> Back to Wizard
                         </button>
                     </div>
                 </div>
