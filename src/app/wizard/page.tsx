@@ -38,6 +38,13 @@ function WizardContent() {
 
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
+  const [configLength, setConfigLength] = useState(0);
+
+  // Monitor config size for URL limits
+  useEffect(() => {
+    const encoded = encodeConfig(config);
+    setConfigLength(encoded.length);
+  }, [config]);
 
   // Secure Session Verification
   useEffect(() => {
@@ -669,6 +676,11 @@ function WizardContent() {
                     <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-xs font-mono text-left bg-gray-50 overflow-hidden text-ellipsis whitespace-nowrap">
                       {generatedLink}
                     </div>
+                    {configLength > 4000 && (
+                        <p className="text-[10px] text-orange-600 bg-orange-50 p-2 rounded-lg flex items-center gap-2">
+                            <Info size={12} /> This sanctuary is quite large! If it doesn't open on some apps, try removing a few photos.
+                        </p>
+                    )}
                     <div className="flex flex-col gap-3">
                       <button 
                         onClick={copyToClipboard}
