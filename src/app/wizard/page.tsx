@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2 } from 'lucide-react';
+import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2, Plus, Trash2, FileText } from 'lucide-react';
 import { ValentineConfig, encodeConfig } from '@/utils/config';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -15,19 +15,21 @@ function WizardContent() {
   const success = searchParams.get('success') === 'true';
   const paidPlan = searchParams.get('paid_plan') as 'plus' | 'infinite';
 
-  const [step, setStep] = useState(success ? 7 : 1);
+  const [step, setStep] = useState(success ? 8 : 1);
   const [isPaying, setIsPaying] = useState(false);
+  const [bulkInput, setBulkInput] = useState<{ [key: string]: string }>({});
   const [config, setConfig] = useState<ValentineConfig>({
-    plan: initialPlan,
+    plan: success ? paidPlan : initialPlan,
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
-    totalDays: initialPlan === 'free' ? 1 : 3,
+    totalDays: (success ? paidPlan : initialPlan) === 'free' ? 1 : 3,
     spotifyTracks: { "day14": "" },
     notes: [
       { id: 'note1', day: 14, content: 'Happy Valentine\'s Day!' }
     ],
     passcode: '1402',
-    videoUrl: ''
+    videoUrl: '',
+    galleryImages: {}
   });
 
   const [generatedLink, setGeneratedLink] = useState('');
@@ -40,16 +42,13 @@ function WizardContent() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          // Ensure the plan matches the one paid for
           parsed.plan = paidPlan || parsed.plan;
           setConfig(parsed);
           
-          // Generate the link immediately
           const encoded = encodeConfig(parsed);
           const url = `${window.location.origin}/#config=${encoded}`;
           setGeneratedLink(url);
           
-          // Clear it so it doesn't linger
           localStorage.removeItem('pending_valentine_config');
         } catch (e) {
           console.error("Failed to parse saved config", e);
@@ -58,7 +57,6 @@ function WizardContent() {
     }
   }, [success, paidPlan]);
 
-  // Constraints based on plan
   const PLAN_LIMITS = {
     free: { days: 1, notes: 3, gallery: false, video: false, branding: true },
     plus: { days: 7, notes: 10, gallery: true, video: false, branding: false },
@@ -82,7 +80,6 @@ function WizardContent() {
   const handleGenerate = async () => {
     if (config.plan !== 'free' && !success) {
         setIsPaying(true);
-        // Persist config so it's there when we return
         localStorage.setItem('pending_valentine_config', JSON.stringify(config));
         
         try {
@@ -108,7 +105,7 @@ function WizardContent() {
     const encoded = encodeConfig(config);
     const url = `${window.location.origin}/#config=${encoded}`;
     setGeneratedLink(url);
-    setStep(7);
+    setStep(8);
   };
 
   const copyToClipboard = () => {
@@ -121,6 +118,7 @@ function WizardContent() {
     { title: "Select Plan", icon: <Star /> },
     { title: "The Couple", icon: <Heart /> },
     { title: "The Music", icon: <Music /> },
+    { title: "The Gallery", icon: <ImageIcon /> },
     { title: "The Notes", icon: <MessageSquare /> },
     { title: "The Video", icon: <ImageIcon /> },
     { title: "The Secret", icon: <Lock /> },
@@ -133,6 +131,14 @@ function WizardContent() {
       days.push(14 - i);
     }
     return days.sort((a, b) => a - b);
+  };
+
+  const handleBulkAdd = (dayKey: string) => {
+      const input = bulkInput[dayKey] || '';
+      const urls = input.split('\n').map(u => u.trim()).filter(u => u !== '');
+      const existing = config.galleryImages?.[dayKey] || [];
+      updateConfig(`galleryImages.${dayKey}`, [...existing, ...urls]);
+      setBulkInput({ ...bulkInput, [dayKey]: '' });
   };
 
   const UpgradeNudge = ({ target }: { target: 'plus' | 'infinite' }) => (
@@ -162,11 +168,11 @@ function WizardContent() {
         <div className="bg-valentine-red p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
-                {steps[step-1].icon}
+                {steps[step-1]?.icon}
             </div>
             <div>
                 <h1 className="text-xl font-bold">Valentine Wizard</h1>
-                <p className="text-valentine-pink/80 text-[10px] uppercase font-bold tracking-widest">{config.plan} Plan • Step {step} of 7</p>
+                <p className="text-valentine-pink/80 text-[10px] uppercase font-bold tracking-widest">{config.plan} Plan • Step {step} of 8</p>
             </div>
           </div>
           <Link href="/" className="hover:bg-white/10 p-2 rounded-full transition-colors">
@@ -176,17 +182,17 @@ function WizardContent() {
 
         {/* Progress Bar */}
         <div className="h-1 bg-valentine-pink/20 w-full flex">
-          {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
             <div 
               key={s} 
               className={`h-full transition-all duration-500 ${s <= step ? 'bg-valentine-red' : ''}`} 
-              style={{ width: '14.28%' }}
+              style={{ width: '12.5%' }}
             />
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-grow p-8 overflow-y-auto custom-scrollbar">
+        <div className="flex-grow p-8 overflow-y-auto custom-scrollbar text-gray-800">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -320,6 +326,84 @@ function WizardContent() {
               )}
 
               {step === 4 && (
+                <div className="space-y-4">
+                  {!currentLimits.gallery ? (
+                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                      <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
+                      <h3 className="text-xl font-bold text-valentine-red mb-2">Photo Gallery is Premium</h3>
+                      <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to upload your favorite memories!</p>
+                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-valentine-soft">Add image URLs for each day of the gallery.</p>
+                      </div>
+                      <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8">
+                        {getDaysArray().map((day) => {
+                          const dayKey = `day${day}`;
+                          const images = config.galleryImages?.[dayKey] || [];
+                          return (
+                            <div key={day} className="p-5 bg-valentine-cream/30 rounded-2xl space-y-4 border border-valentine-pink/10">
+                              <div className="flex justify-between items-center">
+                                <label className="block text-[10px] font-bold text-valentine-red uppercase tracking-[0.2em]">
+                                  Feb {day} Gallery
+                                </label>
+                                <span className="text-[10px] bg-white px-2 py-1 rounded-full font-bold text-valentine-soft shadow-sm">
+                                    {images.length} Images
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="relative group">
+                                    <textarea 
+                                        value={bulkInput[dayKey] || ''}
+                                        onChange={(e) => setBulkInput({ ...bulkInput, [dayKey]: e.target.value })}
+                                        placeholder="Bulk add: Paste image URLs here (one per line)..."
+                                        className="w-full p-3 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors text-xs min-h-[100px] resize-none"
+                                    />
+                                    <button 
+                                        onClick={() => handleBulkAdd(dayKey)}
+                                        className="absolute bottom-2 right-2 p-2 bg-valentine-red text-white rounded-lg shadow-md hover:scale-105 transition-all"
+                                        title="Add URLs"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </div>
+                                
+                                {images.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2 mt-4">
+                                        {images.map((url, idx) => (
+                                            <div key={idx} className="relative group rounded-lg overflow-hidden border-2 border-valentine-pink/20 aspect-video bg-white">
+                                                {url ? (
+                                                    <img src={url} className="w-full h-full object-cover" alt="" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-valentine-pink"><FileText size={20} /></div>
+                                                )}
+                                                <button 
+                                                    onClick={() => {
+                                                        const newImages = images.filter((_, i) => i !== idx);
+                                                        updateConfig(`galleryImages.${dayKey}`, newImages);
+                                                    }}
+                                                    className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {step === 5 && (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-valentine-soft">Write messages that unlock at specific times.</p>
@@ -338,7 +422,7 @@ function WizardContent() {
                             newNotes[idx].day = parseInt(e.target.value);
                             updateConfig('notes', newNotes);
                           }}
-                          className="p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-xs"
+                          className="p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-xs bg-white"
                         >
                           {getDaysArray().map(d => (
                               <option key={d} value={d}>Feb {d}</option>
@@ -353,7 +437,7 @@ function WizardContent() {
                             updateConfig('notes', newNotes);
                           }}
                           placeholder="My message..."
-                          className="flex-grow p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-sm"
+                          className="flex-grow p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-sm bg-white"
                         />
                       </div>
                       {config.notes.length > 1 && (
@@ -386,7 +470,7 @@ function WizardContent() {
                 </div>
               )}
 
-              {step === 5 && (
+              {step === 6 && (
                 <div className="space-y-4">
                   {!currentLimits.video ? (
                     <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
@@ -411,7 +495,7 @@ function WizardContent() {
                 </div>
               )}
 
-              {step === 6 && (
+              {step === 7 && (
                 <div className="space-y-4 text-center">
                    <div className="space-y-2 text-left">
                     <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
@@ -436,7 +520,7 @@ function WizardContent() {
                 </div>
               )}
 
-              {step === 7 && (
+              {step === 8 && (
                 <div className="space-y-8 text-center py-10">
                   <div className="space-y-2">
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -487,7 +571,7 @@ function WizardContent() {
         </div>
 
         {/* Footer */}
-        {step < 7 && (
+        {step < 8 && (
           <div className="p-6 bg-valentine-cream/30 border-t flex justify-between items-center">
             <button 
               onClick={() => setStep(Math.max(1, step - 1))}
@@ -497,7 +581,7 @@ function WizardContent() {
               <ArrowLeft size={18} /> Previous
             </button>
             
-            {step < 6 ? (
+            {step < 7 ? (
               <button 
                 onClick={() => setStep(step + 1)}
                 className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-sm"

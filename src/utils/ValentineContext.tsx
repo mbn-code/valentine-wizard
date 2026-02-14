@@ -35,7 +35,19 @@ const DEFAULT_CONFIG: ValentineConfig = {
     { id: "note8", day: 14, content: "En sidste sang :)", isSpotify: true, spotifyId: "7EAMXbLcL0qXmciM5SwMh2" },
   ],
   passcode: "1402",
-  videoUrl: "/assets/videos/joyful_moments.mov"
+  videoUrl: "/assets/videos/joyful_moments.mov",
+  galleryImages: {
+      "day12": [
+          "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&q=80",
+          "https://images.unsplash.com/photo-1516589174184-c685266d430c?w=800&q=80"
+      ],
+      "day13": [
+          "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=800&q=80"
+      ],
+      "day14": [
+          "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=80"
+      ]
+  }
 };
 
 export function ValentineProvider({ children }: { children: ReactNode }) {
