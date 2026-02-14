@@ -10,6 +10,7 @@ interface ValentineContextType {
   isWizardMode: boolean;
   decryptWithPasscode: (passcode: string) => Promise<boolean>;
   isLocked: boolean;
+  setPreviewConfig: (config: ValentineConfig | null) => void;
 }
 
 const ValentineContext = createContext<ValentineContextType | undefined>(undefined);
@@ -18,6 +19,13 @@ export function ValentineProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<ValentineConfig | null>(null);
   const [isWizardMode, setIsWizardMode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+
+  const setPreviewConfig = (newConfig: ValentineConfig | null) => {
+    setConfig(newConfig);
+    if (newConfig) {
+      setAnniversaryDate(newConfig.anniversaryDate);
+    }
+  };
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -86,7 +94,7 @@ export function ValentineProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ValentineContext.Provider value={{ config, isWizardMode, decryptWithPasscode, isLocked }}>
+    <ValentineContext.Provider value={{ config, isWizardMode, decryptWithPasscode, isLocked, setPreviewConfig }}>
       {children}
     </ValentineContext.Provider>
   );

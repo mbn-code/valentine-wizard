@@ -8,6 +8,9 @@ import { generateMasterKey, exportKey, encryptData, deriveKeyFromPasscode, toBas
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
+import { useValentine } from '@/utils/ValentineContext';
+import Dashboard from '@/components/Dashboard';
+import Invitation from '@/components/Invitation';
 
 function WizardContent() {
   const searchParams = useSearchParams();
@@ -21,9 +24,12 @@ function WizardContent() {
   const [step, setStep] = useState(success ? 8 : 1);
   const [isPaying, setIsPaying] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(success && !!sessionId);
   const [uploading, setUploading] = useState<string | null>(null);
   const [bulkInput, setBulkInput] = useState<{ [key: string]: string }>({});
+  
+  const { setPreviewConfig } = useValentine();
   
   const [config, setConfig] = useState<ValentineConfig>({
     plan: initialPlan,
@@ -43,6 +49,7 @@ function WizardContent() {
   const [copied, setCopied] = useState(false);
   const [configLength, setConfigLength] = useState(0);
   const [totalNotesLength, setTotalNotesLength] = useState(0);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
 
   // Monitor config size for URL limits
   useEffect(() => {
@@ -317,19 +324,32 @@ function WizardContent() {
   return (
     <main className="min-h-screen bg-valentine-cream p-4 md:p-8 flex flex-col items-center text-gray-800">
       <div className="max-w-3xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[650px]">
-        <div className="bg-valentine-red p-6 text-white flex items-center justify-between">
+        <div className="bg-valentine-red p-6 text-white flex items-center justify-between text-gray-800">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
                 {steps[step-1]?.icon}
             </div>
-            <div>
+            <div className="text-white">
                 <h1 className="text-xl font-bold">Valentine Wizard</h1>
                 <p className="text-valentine-pink/80 text-[10px] uppercase font-bold tracking-widest">{config.plan} Plan • Step {step} of 8</p>
             </div>
           </div>
-          <Link href="/" className="hover:bg-white/10 p-2 rounded-full transition-colors">
-            <X size={24} />
-          </Link>
+          <div className="flex items-center gap-2">
+            {step > 1 && step < 8 && (
+                <button 
+                    onClick={() => {
+                        setPreviewConfig(config);
+                        setIsPreviewing(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-[10px] text-white font-bold uppercase tracking-widest border border-white/20"
+                >
+                    <Zap size={14} className="fill-current" /> Preview
+                </button>
+            )}
+            <Link href="/" className="hover:bg-white/10 p-2 rounded-full transition-colors text-white">
+                <X size={24} />
+            </Link>
+          </div>
         </div>
 
         <div className="h-1 bg-valentine-pink/20 w-full flex">
@@ -394,6 +414,15 @@ function WizardContent() {
                             </li>
                         </ul>
                     </div>
+                    <button 
+                        onClick={() => {
+                            setPreviewConfig(config);
+                            setIsPreviewing(true);
+                        }}
+                        className="w-full py-3 border-2 border-valentine-red text-valentine-red rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-valentine-red/5 transition-all flex items-center justify-center gap-2"
+                    >
+                        <Zap size={14} className="fill-current" /> Preview Experience
+                    </button>
                 </div>
               )}
 
@@ -874,13 +903,26 @@ function WizardContent() {
         {/* Footer */}
         {step < 8 && (
           <div className="p-6 bg-valentine-cream/30 border-t flex justify-between items-center">
-            <button 
-              onClick={() => setStep(Math.max(1, step - 1))}
-              disabled={step === 1 || isPaying || !!uploading}
-              className={`flex items-center gap-2 font-bold text-sm transition-colors ${step === 1 || !!uploading ? 'text-valentine-soft/50 cursor-not-allowed' : 'text-valentine-soft hover:text-valentine-red'}`}
-            >
-              <ArrowLeft size={18} /> Previous
-            </button>
+            <div className="flex gap-2">
+                <button 
+                onClick={() => setStep(Math.max(1, step - 1))}
+                disabled={step === 1 || isPaying || !!uploading}
+                className={`flex items-center gap-2 font-bold text-sm transition-colors ${step === 1 || !!uploading ? 'text-valentine-soft/50 cursor-not-allowed' : 'text-valentine-soft hover:text-valentine-red'}`}
+                >
+                <ArrowLeft size={18} /> Previous
+                </button>
+                {step > 1 && (
+                    <button 
+                        onClick={() => {
+                            setPreviewConfig(config);
+                            setIsPreviewing(true);
+                        }}
+                        className="hidden md:flex items-center gap-2 text-valentine-soft hover:text-valentine-red font-bold text-sm transition-colors ml-4"
+                    >
+                        <Zap size={16} /> Preview
+                    </button>
+                )}
+            </div>
             
             {step < 7 ? (
               <button 
@@ -914,8 +956,80 @@ function WizardContent() {
             </div>
         )}
       </div>
+
+      {/* Live Preview Overlay */}
+      <AnimatePresence>
+        {isPreviewing && (
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="fixed inset-0 z-[2000] bg-valentine-cream overflow-y-auto"
+            >
+                <div className="sticky top-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-b border-valentine-pink/20 flex justify-between items-center z-[2100]">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="text-valentine-red" size={20} />
+                        <span className="text-xs font-bold text-valentine-red uppercase tracking-widest">Live Preview Mode</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className="relative">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            localStorage.setItem('debug_unlock_all', 'true');
+                                        } else {
+                                            localStorage.removeItem('debug_unlock_all');
+                                        }
+                                        setPreviewRefreshKey(prev => prev + 1);
+                                    }}
+                                />
+                                <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-valentine-red transition-all shadow-inner"></div>
+                                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:left-6 transition-all shadow-md"></div>
+                            </div>
+                            <span className="text-[10px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Force Unlock All</span>
+                        </label>
+                        <button 
+                            onClick={() => {
+                                setIsPreviewing(false);
+                                setPreviewConfig(null);
+                                localStorage.removeItem('debug_unlock_all');
+                            }}
+                            className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg text-xs uppercase tracking-widest hover:scale-105 transition-all"
+                        >
+                            Close Preview
+                        </button>
+                    </div>
+                </div>
+                
+                <div className="relative">
+                    {/* Render the actual app components using the injected preview config */}
+                    <PreviewApp forceUpdateKey={previewRefreshKey} />
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
+}
+
+/**
+ * Internal component to handle the preview logic (switching between invitation and dashboard)
+ */
+function PreviewApp({ forceUpdateKey }: { forceUpdateKey: number }) {
+    const [phase, setPhase] = useState<'invitation' | 'dashboard'>('invitation');
+    
+    return (
+        <div className="min-h-screen text-gray-800" key={forceUpdateKey}>
+            {phase === 'invitation' ? (
+                <Invitation onComplete={() => setPhase('dashboard')} />
+            ) : (
+                <Dashboard />
+            )}
+        </div>
+    );
 }
 
 function Loader2({ className, size }: { className?: string, size?: number }) {
