@@ -304,6 +304,14 @@ function WizardContent() {
                                 {currentLimits.video ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
                                 Custom Video Player
                             </li>
+                            <li className="flex items-center gap-2">
+                                {currentLimits.background ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
+                                Custom Background Image
+                            </li>
+                            <li className="flex items-center gap-2">
+                                {!currentLimits.branding ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
+                                Remove "Valentine Wizard" Branding
+                            </li>
                         </ul>
                     </div>
                 </div>

@@ -21,9 +21,11 @@ export default function Home() {
     }
 
     const isCompleted = localStorage.getItem(`valentine_completed_${JSON.stringify(config.names)}`) === 'true';
-    const currentPhase = getCurrentPhase();
-
-    if (isCompleted || currentPhase === 'dashboard') {
+    
+    // Always show invitation first if not completed, 
+    // unless it's the free tier and we're past the date (original logic)
+    // Actually, let's just always show it if not completed for a better experience.
+    if (isCompleted) {
       setPhase('dashboard');
     } else {
       setPhase('invitation');
@@ -59,9 +61,9 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-24 px-8 bg-white">
+        <section id="pricing" className="py-24 px-8 bg-white text-gray-800">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center">A Tier for Every Romance</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center">Compare the Tiers</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
               {/* Free Plan */}
@@ -73,22 +75,26 @@ export default function Home() {
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 3 Secret Notes</li>
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Invitation Game</li>
                   <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> No Photo Gallery</li>
-                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> Branding Included</li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> Default Cinema Video</li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> No Custom Background</li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> "Valentine Wizard" Branding</li>
                 </ul>
                 <Link href="/wizard?plan=free" className="w-full py-3 text-center border-2 border-valentine-red text-valentine-red rounded-xl font-bold text-sm">Get Started</Link>
               </div>
 
               {/* Plus Plan */}
-              <div className="p-8 rounded-3xl border-2 border-valentine-red relative flex flex-col text-left bg-white shadow-xl scale-105 z-10">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-valentine-red text-white px-4 py-1 rounded-full font-bold text-xs uppercase tracking-widest">Better Value</div>
+              <div className="p-8 rounded-3xl border-2 border-valentine-red relative flex flex-col text-left bg-white shadow-xl scale-105 z-10 border-t-8">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-valentine-red text-white px-4 py-1 rounded-full font-bold text-xs uppercase tracking-widest">Great Value</div>
                 <h3 className="text-xl font-bold text-valentine-red mb-2 mt-2">The Romance</h3>
                 <div className="text-3xl font-bold text-valentine-red mb-6">$4.99</div>
                 <ul className="space-y-3 mb-8 flex-grow text-sm">
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> 7 Day Countdown</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> 10 Secret Notes</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>Photo Gallery Access</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>7 Day</b> Countdown</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>10</b> Secret Notes</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>Full Gallery Upload</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>Custom Background</b></li>
                   <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> Music for every day</li>
-                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> Remove Watermark</li>
+                  <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> <b>No Watermark</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> Default Cinema Video</li>
                 </ul>
                 <Link href="/wizard?plan=plus" className="w-full py-4 text-center bg-valentine-red text-white rounded-xl font-bold shadow-lg">Upgrade Now</Link>
               </div>
@@ -98,11 +104,13 @@ export default function Home() {
                 <h3 className="text-xl font-bold text-valentine-red mb-2">The Sanctuary</h3>
                 <div className="text-3xl font-bold text-valentine-red mb-6">$9.99</div>
                 <ul className="space-y-3 mb-8 flex-grow text-sm">
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> 14 Day Countdown</li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Unlimited Everything</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Secret Cinema (Video)</b></li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Passcodes</li>
-                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Premium Support</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>14 Day</b> Journey</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Unlimited</b> Notes</li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Bulk Photo Gallery</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Cinema (Video)</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Passcodes</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>Custom Background</b></li>
+                  <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Priority Processing</li>
                 </ul>
                 <Link href="/wizard?plan=infinite" className="w-full py-3 text-center border-2 border-valentine-pink text-valentine-soft rounded-xl font-bold text-sm">Go Infinite</Link>
               </div>
