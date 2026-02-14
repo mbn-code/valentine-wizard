@@ -59,7 +59,8 @@ function WizardContent() {
             const saved = localStorage.getItem('pending_valentine_config');
             if (saved) {
               const parsed = JSON.parse(saved);
-              parsed.plan = paidPlan || parsed.plan;
+              // Use the plan verified by Stripe, not the one in the URL!
+              parsed.plan = data.plan || parsed.plan;
               setConfig(parsed);
               
               const encoded = encodeConfig(parsed);
@@ -108,6 +109,19 @@ function WizardContent() {
       handleUploadUrl: '/api/upload',
     });
     return newBlob.url;
+  };
+
+  const deleteAsset = async (url: string) => {
+    try {
+        const encodedConfig = encodeConfig(config);
+        await fetch('/api/delete-blobs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ urls: [url], config: encodedConfig })
+        });
+    } catch (e) {
+        console.error("Failed to delete asset from cloud", e);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, path: string, isGallery = false, dayKey?: string) => {
@@ -427,7 +441,11 @@ function WizardContent() {
                                     <div className="flex-grow">
                                         <p className="text-xs font-bold text-valentine-red">Background Set</p>
                                         <button 
-                                            onClick={() => updateConfig('backgroundUrl', '')}
+                                            onClick={() => {
+                                                const url = config.backgroundUrl;
+                                                updateConfig('backgroundUrl', '');
+                                                if (url) deleteAsset(url);
+                                            }}
                                             className="text-[10px] text-valentine-soft underline uppercase font-bold"
                                         >
                                             Remove
@@ -552,6 +570,7 @@ function WizardContent() {
                                                     onClick={() => {
                                                         const newImages = images.filter((_, i) => i !== idx);
                                                         updateConfig(`galleryImages.${dayKey}`, newImages);
+                                                        if (url) deleteAsset(url);
                                                     }}
                                                     className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
@@ -668,7 +687,11 @@ function WizardContent() {
                                 <div className="flex justify-between items-center">
                                     <p className="text-xs font-bold text-valentine-red uppercase">Video Uploaded Successfully</p>
                                     <button 
-                                        onClick={() => updateConfig('videoUrl', '')}
+                                        onClick={() => {
+                                            const url = config.videoUrl;
+                                            updateConfig('videoUrl', '');
+                                            if (url) deleteAsset(url);
+                                        }}
                                         className="text-[10px] text-valentine-soft underline uppercase font-bold"
                                     >
                                         Delete and Change

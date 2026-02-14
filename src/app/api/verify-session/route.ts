@@ -22,7 +22,8 @@ export async function GET(req: Request) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     return NextResponse.json({ 
       status: session.payment_status,
-      success: session.payment_status === 'paid'
+      success: session.payment_status === 'paid',
+      plan: session.metadata?.plan
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
