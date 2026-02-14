@@ -249,17 +249,7 @@ const Dashboard = () => {
         </section>
 
         <Gallery />
-        
-        {config.plan === 'pro' ? (
-            <SecretCinema />
-        ) : (
-            <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
-                <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
-                <h3 className="text-xl font-bold text-valentine-red mb-2">Unlock your Secret Cinema?</h3>
-                <p className="text-sm text-valentine-soft mb-6">Upgrade to Pro to add a custom memory video player!</p>
-                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block">Upgrade to Pro</Link>
-            </div>
-        )}
+        <SecretCinema />
       </div>
 
       {config.plan === 'free' && (

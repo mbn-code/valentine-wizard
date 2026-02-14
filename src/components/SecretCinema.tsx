@@ -6,6 +6,8 @@ import { Lock, Play, Film, X, Music } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useValentine } from '@/utils/ValentineContext';
 
+const DEFAULT_VIDEO = "https://assets.mixkit.io/videos/preview/mixkit-heart-shaped-balloons-floating-in-the-sky-4288-large.mp4";
+
 const SecretCinema = () => {
   const { config } = useValentine();
   const [passcode, setPasscode] = useState(['', '', '', '']);
@@ -96,7 +98,7 @@ const SecretCinema = () => {
           </div>
           
           <div className="space-y-6">
-            {tracks.map((track) => (
+            {tracks.filter(t => !!t.id).map((track) => (
               <div 
                 key={track.id} 
                 className={`relative transition-all duration-700 cursor-pointer ${selectedTrack === track.id ? 'scale-105 opacity-100' : 'opacity-40 hover:opacity-60'}`}
@@ -126,7 +128,7 @@ const SecretCinema = () => {
 
           <div className="h-[70vh] aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-zinc-800 relative">
             <video 
-              src={config.videoUrl || "/assets/videos/joyful_moments.mov"} 
+              src={(config.plan === 'pro' && config.videoUrl) ? config.videoUrl : DEFAULT_VIDEO} 
               controls 
               autoPlay 
               muted
@@ -135,7 +137,9 @@ const SecretCinema = () => {
             />
           </div>
           
-          <h2 className="mt-8 text-4xl font-bold text-valentine-red font-sacramento text-center">Our Joyful Moments</h2>
+          <h2 className="mt-8 text-4xl font-bold text-valentine-red font-sacramento text-center">
+            {config.plan === 'pro' ? 'Our Joyful Moments' : 'A Special Delivery'}
+          </h2>
         </div>
       </motion.div>
     );
