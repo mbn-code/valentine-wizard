@@ -31,12 +31,13 @@ export default function TermsOfService() {
           <h2 className="text-xl font-bold text-valentine-red mt-6">3. Payments and Refunds</h2>
           <ul className="list-disc pl-5 space-y-2">
             <li><strong>Final Sale:</strong> Due to the nature of digital goods and immediate asset processing costs, all purchases are final. We do not offer refunds once a premium link has been generated.</li>
+            <li><strong>Technical Issues:</strong> We are not responsible for malfunctions caused by user error (e.g., uploading incompatible file formats, accidental deletion, or providing incorrect information). Refunds will not be issued even in cases of technical difficulty, as the service is provided "as-is".</li>
             <li><strong>One-time Payment:</strong> Payments are one-time fees, not recurring subscriptions.</li>
           </ul>
 
           <h2 className="text-xl font-bold text-valentine-red mt-6">4. User Content</h2>
           <p>
-            You are responsible for the photos, videos, and text you upload. You must own the rights to the content you share. We reserve the right to remove content that violates laws or third-party rights if reported.
+            You are responsible for the photos, videos, and text you upload. You must own the rights to the content you share. We reserve the right to remove content that violates laws or third-party rights if reported. Uploading content that exceeds browser URL limits may cause your link to fail; we recommend keeping total uploads within reasonable bounds.
           </p>
 
           <h2 className="text-xl font-bold text-valentine-red mt-6">5. Data Deletion</h2>

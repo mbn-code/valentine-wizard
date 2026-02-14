@@ -373,7 +373,15 @@ function WizardContent() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2 text-left">
-                        <label className="block text-sm font-bold text-valentine-soft uppercase">Anniversary Date</label>
+                        <label className="block text-sm font-bold text-valentine-soft uppercase flex items-center gap-2">
+                            Anniversary Date
+                            <span className="group relative">
+                                <Info size={14} className="text-valentine-pink cursor-help" />
+                                <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                                    Used to calculate your total time together on the dashboard.
+                                </span>
+                            </span>
+                        </label>
                         <input 
                         type="date" 
                         value={config.anniversaryDate.split('T')[0]}
@@ -455,7 +463,15 @@ function WizardContent() {
 
               {step === 3 && (
                 <div className="space-y-4 text-left">
-                  <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage of the countdown.</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage of the countdown.</p>
+                    <span className="group relative">
+                        <Info size={14} className="text-valentine-pink cursor-help" />
+                        <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
+                            Open Spotify, click "..." on a song → Share → Copy Link. Then paste it here. We'll automatically extract the ID.
+                        </span>
+                    </span>
+                  </div>
                   <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4 text-left">
                     {getDaysArray().map((day) => (
                         <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl text-left">
@@ -484,8 +500,14 @@ function WizardContent() {
                     </div>
                   ) : (
                     <div className="space-y-4 text-left">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
                         <p className="text-sm text-valentine-soft">Upload images from your computer for each day.</p>
+                        <span className="group relative">
+                            <Info size={14} className="text-valentine-pink cursor-help" />
+                            <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
+                                Upload JPG, PNG, or WebP files. You can select multiple files at once. These will be shown as scratch-off memories!
+                            </span>
+                        </span>
                       </div>
                       <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8">
                         {getDaysArray().map((day) => {
@@ -627,7 +649,15 @@ function WizardContent() {
                     </div>
                   ) : (
                     <div className="space-y-4 text-left">
-                      <label className="block text-sm font-bold text-valentine-soft uppercase tracking-wider">Secret Cinema Video</label>
+                      <label className="block text-sm font-bold text-valentine-soft uppercase tracking-wider flex items-center gap-2">
+                        Secret Cinema Video
+                        <span className="group relative">
+                            <Info size={14} className="text-valentine-pink cursor-help" />
+                            <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
+                                Upload an MP4 or MOV file. This will be the main feature of your Secret Cinema. Recommended size: under 50MB for faster loading.
+                            </span>
+                        </span>
+                      </label>
                       
                       <div className={`relative rounded-xl border-2 border-dashed p-8 transition-all ${uploading === 'videoUrl' ? 'bg-valentine-cream/30 border-valentine-red' : 'border-valentine-pink/30 bg-white hover:border-valentine-red'}`}>
                         {config.videoUrl ? (
@@ -678,8 +708,14 @@ function WizardContent() {
               {step === 7 && (
                 <div className="space-y-4 text-center">
                    <div className="space-y-2 text-left">
-                    <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
+                    <label className="block text-sm font-bold text-valentine-soft uppercase flex items-center gap-2">
                         Secret Passcode
+                        <span className="group relative">
+                            <Info size={14} className="text-valentine-pink cursor-help" />
+                            <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
+                                A 4-digit code your partner will need to enter to unlock the Secret Cinema. Make it something they'll know!
+                            </span>
+                        </span>
                     </label>
                     <input 
                       type="text" 
@@ -808,9 +844,14 @@ function WizardContent() {
           </div>
         )}
         {step < 7 && config.plan !== 'free' && !success && (
-            <div className="p-2 bg-gray-50 flex items-center justify-center gap-4 text-[10px] text-valentine-soft border-t border-valentine-pink/5 opacity-60">
-                <span className="flex items-center gap-1"><Shield size={10} /> Secure Stripe Payment</span>
-                <span className="flex items-center gap-1"><Check size={10} /> One-time purchase</span>
+            <div className="p-4 bg-valentine-red/5 flex flex-col items-center justify-center gap-2 border-t border-valentine-pink/10">
+                <div className="flex items-center gap-4 text-[10px] text-valentine-soft font-bold uppercase tracking-wider">
+                    <span className="flex items-center gap-1"><Shield size={10} /> Secure Stripe Payment</span>
+                    <span className="flex items-center gap-1"><Check size={10} /> One-time purchase</span>
+                </div>
+                <p className="text-[9px] text-valentine-soft italic text-center opacity-70">
+                    By proceeding, you agree that digital goods are non-refundable as processing and storage are immediate.
+                </p>
             </div>
         )}
       </div>
