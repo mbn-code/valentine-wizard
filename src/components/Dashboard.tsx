@@ -3,21 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTimeTogether, isTrackUnlocked, getTimeUntil } from '@/utils/date';
-import { Heart, Music, Clock, Bell, Download, X, Lock, Sparkles } from 'lucide-react';
+import { Heart, Music, Clock, Bell, Download, X, Lock, Sparkles, Key } from 'lucide-react';
 import Gallery from './Gallery';
 import SecretCinema from './SecretCinema';
 import Ambiance from './Ambiance';
 import Link from 'next/link';
 import { useValentine } from '@/utils/ValentineContext';
-
-declare global {
-  interface Window {
-    electronAPI?: {
-      closeApp: () => void;
-      isElectron: boolean;
-    };
-  }
-}
+import DOMPurify from 'isomorphic-dompurify';
 
 const LiveCountdown = ({ day, hour = 0 }: { day: number, hour?: number }) => {
   const [timeLeft, setTimeLeft] = useState(getTimeUntil(day, hour));
@@ -40,7 +32,7 @@ const LiveCountdown = ({ day, hour = 0 }: { day: number, hour?: number }) => {
   );
 };
 
-const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: number, hour?: number, content: React.ReactNode }) => {
+const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: number, hour?: number, content: string }) => {
   const [timerDone, setTimerDone] = React.useState(false);
   const [unlocked, setUnlocked] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState(getTimeUntil(day, hour));
@@ -81,7 +73,7 @@ const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: numbe
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-2 text-valentine-soft">
         <button 
-          className="bg-valentine-red text-white px-4 py-2 rounded-full shadow font-bold hover:bg-valentine-red/90 transition-all focus:outline-none"
+          className="bg-valentine-red text-white px-4 py-2 rounded-full shadow font-bold hover:bg-valentine-red/90 transition-all focus:outline-none text-xs"
           onClick={handleUnlock}
         >
           Unlock
@@ -89,34 +81,116 @@ const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: numbe
       </div>
     );
   }
-  return <>{content}</>;
+
+  return (
+    <div 
+      className="italic text-base text-valentine-red p-2 leading-relaxed h-full flex items-center justify-center text-center break-words"
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+    />
+  );
 };
 
 const Dashboard = () => {
-  const { config } = useValentine();
+  const { config, isLocked, decryptWithPasscode } = useValentine();
   const [time, setTime] = useState(getTimeTogether());
+  const [passcode, setPasscode] = useState(['', '', '', '']);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isPremiumVerified, setIsPremiumVerified] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(getTimeTogether());
     }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
-  const LockedState = ({ day, hour = 0 }: { day: number, hour?: number }) => {
-    return (
-      <div className="flex flex-col items-center justify-center h-full space-y-2 text-valentine-soft">
-        <Clock size={40} aria-hidden="true" />
-        <p className="text-sm font-medium">Unlocks in</p>
-        <LiveCountdown day={day} hour={hour} />
-      </div>
-    );
+  useEffect(() => {
+    if (config?.signature && config.plan !== 'free') {
+        const verify = async () => {
+            try {
+                const partnerNames = `${config.names.partner1}:${config.names.partner2}`;
+                const res = await fetch('/api/verify-premium', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        plan: config.plan, 
+                        partnerNames, 
+                        signature: config.signature 
+                    })
+                });
+                const data = await res.json();
+                setIsPremiumVerified(data.success);
+            } catch (e) {
+                console.error("Premium verification failed", e);
+            }
+        };
+        verify();
+    }
+  }, [config]);
+
+  const handleInput = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newPasscode = [...passcode];
+    newPasscode[index] = value.slice(-1);
+    setPasscode(newPasscode);
+    setError(false);
+    if (value && index < 3) {
+      document.getElementById(`lock-digit-${index + 1}`)?.focus();
+    }
   };
 
+  const handleUnlock = async () => {
+    setIsVerifying(true);
+    const success = await decryptWithPasscode(passcode.join(''));
+    if (!success) {
+      setError(true);
+      setPasscode(['', '', '', '']);
+      document.getElementById('lock-digit-0')?.focus();
+    }
+    setIsVerifying(false);
+  };
+
+  useEffect(() => {
+    if (passcode.every(digit => digit !== '')) {
+      handleUnlock();
+    }
+  }, [passcode]);
+
   if (!config) return null;
+
+  if (isLocked) {
+    return (
+      <main className="min-h-screen bg-valentine-cream flex flex-col items-center justify-center p-8 text-center text-gray-800">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-white p-12 rounded-3xl shadow-xl space-y-8 border-2 border-valentine-pink/20">
+          <div className="w-20 h-20 bg-valentine-red/10 rounded-full flex items-center justify-center mx-auto text-valentine-red">
+            <Lock size={40} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-valentine-red font-sacramento text-5xl">Locked Sanctuary</h2>
+            <p className="text-valentine-soft mt-2 italic text-sm">Enter the passcode to mathematically unlock the memories.</p>
+          </div>
+          
+          <div className="flex justify-center gap-3">
+            {passcode.map((digit, idx) => (
+              <input
+                key={idx}
+                id={`lock-digit-${idx}`}
+                type="text"
+                inputMode="numeric"
+                value={digit}
+                onChange={(e) => handleInput(idx, e.target.value)}
+                className={`w-12 h-16 text-center text-3xl font-bold rounded-xl border-2 transition-all outline-none ${error ? 'border-red-500 bg-red-50' : 'border-valentine-pink/30 focus:border-valentine-red bg-white shadow-inner'}`}
+                autoComplete="off"
+              />
+            ))}
+          </div>
+          {isVerifying && <div className="animate-spin text-valentine-red inline-block mx-auto"><Sparkles size={24} /></div>}
+          {error && <p className="text-red-500 text-xs font-bold animate-shake">Incorrect code. Try again.</p>}
+        </motion.div>
+      </main>
+    );
+  }
 
   const getSpotifyItems = () => {
     const items = [];
@@ -142,7 +216,7 @@ const Dashboard = () => {
           className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
           style={{ 
             backgroundImage: `url(${config.backgroundUrl})`,
-            opacity: 0.15 // Subtle blend
+            opacity: 0.15
           }}
         />
       )}
@@ -153,18 +227,29 @@ const Dashboard = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-bold text-valentine-red select-none font-sacramento"
+            className="text-4xl md:text-6xl font-bold text-valentine-red select-none font-sacramento flex items-center justify-center gap-3"
           >
             Our Sanctuary
+            {isPremiumVerified && (
+                <div className="group relative">
+                    <Sparkles size={24} className="text-yellow-500 fill-yellow-500 animate-pulse" />
+                    <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-32 p-2 bg-gray-800 text-white text-[8px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl font-sans uppercase tracking-widest font-bold">
+                        Verified Premium
+                    </span>
+                </div>
+            )}
           </motion.h1>
-          <p className="text-valentine-soft font-medium text-sm md:text-base italic">Everything I love about us, in one place.</p>
+          <p 
+            className="text-valentine-soft font-medium text-sm md:text-base italic"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`For ${config.names.partner2}, with love from ${config.names.partner1}`) }}
+          />
         </header>
 
         <section className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <motion.div whileHover={{ scale: 1.02 }} className="md:col-span-2 bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm">
-                <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Clock size={14} aria-hidden="true" />
+                <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-left">
+                  <Clock size={14} />
                   Our Time Together
                 </h3>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center items-center">
@@ -185,8 +270,8 @@ const Dashboard = () => {
                     whileHover={{ scale: 1.02 }}
                     className={`${idx === spotifyItems.length - 1 && spotifyItems.length % 2 !== 0 ? 'md:col-span-2' : 'col-span-1'} bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col`}
                   >
-                    <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Music size={14} aria-hidden="true" />
+                    <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-left">
+                      <Music size={14} />
                       {item.title}
                     </h3>
                     <div className="flex-grow">
@@ -201,7 +286,11 @@ const Dashboard = () => {
                           ></iframe>
                         </div>
                       ) : (
-                        <LockedState day={item.day} />
+                        <div className="flex flex-col items-center justify-center h-full space-y-2 text-valentine-soft">
+                            <Clock size={40} />
+                            <p className="text-sm font-medium">Unlocks in</p>
+                            <LiveCountdown day={item.day} />
+                        </div>
                       )}
                     </div>
                   </motion.div>
@@ -222,10 +311,10 @@ const Dashboard = () => {
               <motion.div
                 key={note.id}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col"
+                className="bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col min-h-[120px]"
               >
-                <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Heart size={14} aria-hidden="true" />
+                <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-left">
+                  <Heart size={14} />
                   Note
                 </h3>
                 <div className="flex-grow">
@@ -233,11 +322,7 @@ const Dashboard = () => {
                     id={note.id} 
                     day={note.day} 
                     hour={note.hour}
-                    content={
-                      <div className="italic text-base text-valentine-red p-2 leading-relaxed h-full flex items-center justify-center text-center break-words">
-                        {note.content}
-                      </div>
-                    }
+                    content={note.content}
                   />
                 </div>
               </motion.div>
@@ -250,7 +335,7 @@ const Dashboard = () => {
         ) : (
             <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
                 <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
-                <h3 className="text-xl font-bold text-valentine-red mb-2">Unlock the Photo Gallery?</h3>
+                <h3 className="text-xl font-bold text-valentine-red mb-2 text-gray-800">Unlock the Photo Gallery?</h3>
                 <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to share your favorite memories!</p>
                 <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block text-sm">View Plans</Link>
             </div>
@@ -259,16 +344,15 @@ const Dashboard = () => {
         <SecretCinema />
       </div>
 
-      {/* Free Plan Footer / Watermark */}
       {config.plan === 'free' && (
-        <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50">
+        <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50 text-gray-800">
             <p className="text-[10px] uppercase tracking-[0.2em] text-valentine-soft font-bold flex items-center justify-center gap-2">
                 Created with <span className="text-valentine-red">Valentine Wizard</span>
-                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours →</Link>
+                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours free →</Link>
             </p>
             <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft mt-1 opacity-50">
-              <Link href="/privacy" className="hover:text-valentine-red">Privacy</Link>
-              <Link href="/terms" className="hover:text-valentine-red">Terms</Link>
+              <Link href="/privacy" className="hover:text-valentine-red text-gray-800">Privacy</Link>
+              <Link href="/terms" className="hover:text-valentine-red text-gray-800">Terms</Link>
             </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { signPremiumPlan } from '@/utils/crypto';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -14,18 +15,31 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
   }
 
+  const signingSecret = process.env.SIGNING_SECRET || 'fallback-secret-for-dev-only-change-this';
+
   const stripe = new Stripe(secretKey, {
     apiVersion: '2024-12-18.acacia' as any,
   });
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const success = session.payment_status === 'paid';
+    const plan = session.metadata?.plan || 'free';
+    const partnerNames = `${session.metadata?.partner1 || ''}:${session.metadata?.partner2 || ''}`;
+
+    let signature = '';
+    if (success && plan !== 'free') {
+      signature = await signPremiumPlan(plan, partnerNames, signingSecret);
+    }
+
     return NextResponse.json({ 
       status: session.payment_status,
-      success: session.payment_status === 'paid',
-      plan: session.metadata?.plan
+      success,
+      plan,
+      signature
     });
   } catch (err: any) {
+    console.error(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

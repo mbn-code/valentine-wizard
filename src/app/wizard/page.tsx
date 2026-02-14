@@ -3,7 +3,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2, Plus, Trash2, FileText, Upload, Shield } from 'lucide-react';
-import { ValentineConfig, encodeConfig } from '@/utils/config';
+import { ValentineConfig, SanctuaryPayload } from '@/utils/config';
+import { generateMasterKey, exportKey, encryptData, deriveKeyFromPasscode, toBase64URL } from '@/utils/crypto';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
@@ -21,13 +22,14 @@ function WizardContent() {
   const [isPaying, setIsPaying] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(success && !!sessionId);
-  const [uploading, setUploading] = useState<string | null>(null); // tracks which field is uploading
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [bulkInput, setBulkInput] = useState<{ [key: string]: string }>({});
   
   const [config, setConfig] = useState<ValentineConfig>({
-    plan: success ? (paidPlan || initialPlan) : initialPlan,
+    plan: initialPlan,
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
-    totalDays: (success ? paidPlan : initialPlan) === 'free' ? 1 : 3,
+    totalDays: initialPlan === 'free' ? 1 : 3,
     spotifyTracks: { "day14": "" },
     notes: [
       { id: 'note1', day: 14, content: 'Happy Valentine\'s Day!' }
@@ -43,7 +45,7 @@ function WizardContent() {
 
   // Monitor config size for URL limits
   useEffect(() => {
-    const encoded = encodeConfig(config);
+    const encoded = encodeConfig(config); // Note: this uses legacy for length estimation
     setConfigLength(encoded.length);
   }, [config]);
 
@@ -59,17 +61,14 @@ function WizardContent() {
             const saved = localStorage.getItem('pending_valentine_config');
             if (saved) {
               const parsed = JSON.parse(saved);
-              // Use the plan verified by Stripe, not the one in the URL!
               parsed.plan = data.plan || parsed.plan;
+              parsed.signature = data.signature; // HMAC proof
               setConfig(parsed);
               
-              const encoded = encodeConfig(parsed);
-              const url = `${window.location.origin}/#config=${encoded}`;
-              setGeneratedLink(url);
-              localStorage.removeItem('pending_valentine_config');
+              await finalizeSanctuary(parsed);
             }
           } else {
-            alert("Payment verification failed. Please contact support.");
+            alert("Payment verification failed.");
             setStep(1);
           }
         } catch (e) {
@@ -80,9 +79,8 @@ function WizardContent() {
       };
       verify();
     }
-  }, [success, sessionId, paidPlan]);
+  }, [success, sessionId]);
 
-  // Constraints based on plan
   const PLAN_LIMITS = {
     free: { days: 1, notes: 5, gallery: 3, video: false, branding: true, background: false },
     plus: { days: 7, notes: 15, gallery: 100, video: false, branding: false, background: true },
@@ -151,6 +149,43 @@ function WizardContent() {
     }
   };
 
+  const finalizeSanctuary = async (finalConfig: ValentineConfig) => {
+    try {
+      const sanitizedConfig = { ...finalConfig };
+      
+      if (finalConfig.passcode && finalConfig.passcode !== '1402') {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const saltBase64 = toBase64URL(salt.buffer);
+        const passcodeKey = await deriveKeyFromPasscode(finalConfig.passcode, saltBase64);
+        
+        const encryptedNotes = await encryptData(finalConfig.notes, passcodeKey);
+        const encryptedVideo = await encryptData(finalConfig.videoUrl, passcodeKey);
+        
+        (sanitizedConfig as any).encryptedNotes = encryptedNotes;
+        (sanitizedConfig as any).encryptedVideo = encryptedVideo;
+        (sanitizedConfig as any).passcodeSalt = saltBase64;
+        
+        sanitizedConfig.notes = [];
+        sanitizedConfig.videoUrl = '';
+      }
+
+      const masterKey = await generateMasterKey();
+      const exportedMasterKey = await exportKey(masterKey);
+
+      const { ciphertext, iv } = await encryptData(sanitizedConfig, masterKey);
+
+      const payload: SanctuaryPayload = { d: ciphertext, iv };
+      const query = new URLSearchParams(payload as any).toString();
+      const url = `${window.location.origin}/?${query}#${exportedMasterKey}`;
+      
+      setGeneratedLink(url);
+      setStep(8);
+    } catch (e) {
+      console.error("Encryption failed", e);
+      alert("Failed to secure your sanctuary.");
+    }
+  };
+
   const handleGenerate = async () => {
     if (config.plan !== 'free' && !success) {
         setIsPaying(true);
@@ -166,7 +201,7 @@ function WizardContent() {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                alert("Checkout error. Try again.");
+                alert("Checkout error.");
                 setIsPaying(false);
             }
         } catch (e) {
@@ -176,21 +211,16 @@ function WizardContent() {
         return;
     }
 
-    const encoded = encodeConfig(config);
-    const url = `${window.location.origin}/#config=${encoded}`;
-    setGeneratedLink(url);
-    setStep(8);
+    await finalizeSanctuary(config);
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // Helper for estimated length (legacy style)
+  function encodeConfig(config: any): string {
+    return btoa(JSON.stringify(config));
+  }
 
   const handleDelete = async () => {
     const confirmed = window.confirm("⚠️ WARNING: Irreversible Action\n\nThis will permanently delete all uploaded photos and videos. Your shared link will break immediately.\n\nThis action cannot be reversed and no refunds will be provided. Are you absolutely sure?");
-    
     if (!confirmed) return;
 
     setIsDeleting(true);
@@ -214,13 +244,19 @@ function WizardContent() {
         }
 
         alert("Sanctuary assets deleted successfully.");
-        window.location.href = '/wizard'; // Reset
+        window.location.href = '/wizard';
     } catch (e) {
         console.error(e);
-        alert("Failed to delete some assets. Please try again.");
+        alert("Failed to delete assets.");
     } finally {
         setIsDeleting(false);
     }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const steps = [
@@ -264,11 +300,11 @@ function WizardContent() {
 
   if (isVerifying) {
       return (
-        <main className="min-h-screen bg-valentine-cream flex flex-col items-center justify-center p-8 text-center">
+        <main className="min-h-screen bg-valentine-cream flex flex-col items-center justify-center p-8 text-center text-gray-800">
             <div className="space-y-6">
                 <Loader2 className="w-16 h-16 text-valentine-red animate-spin mx-auto" />
-                <h2 className="text-2xl font-bold text-valentine-red font-sacramento text-4xl">Verifying your romance...</h2>
-                <p className="text-valentine-soft italic">Securing your sanctuary, just a moment.</p>
+                <h2 className="text-2xl font-bold text-valentine-red font-sacramento text-4xl">Securing your romance...</h2>
+                <p className="text-valentine-soft italic">Encrypting and verifying your sanctuary.</p>
             </div>
         </main>
       );
@@ -329,7 +365,7 @@ function WizardContent() {
                             <div 
                                 key={p.id}
                                 onClick={() => updateConfig('plan', p.id)}
-                                className={`p-4 rounded-2xl border-4 cursor-pointer transition-all flex flex-col text-center ${config.plan === p.id ? 'border-valentine-red bg-valentine-red/5' : 'border-valentine-pink/10 hover:border-valentine-pink/30'}`}
+                                className={`p-4 rounded-2xl border-4 cursor-pointer transition-all flex flex-col text-center ${config.plan === p.id ? 'border-valentine-red bg-valentine-red/5 shadow-inner' : 'border-valentine-pink/10 hover:border-valentine-pink/30'}`}
                             >
                                 <p className="text-[10px] font-bold text-valentine-soft uppercase tracking-tighter mb-1">{p.name}</p>
                                 <p className="text-xl font-bold text-valentine-red">{p.price}</p>
@@ -360,11 +396,10 @@ function WizardContent() {
                 </div>
               )}
 
-
               {step === 2 && (
-                <div className="space-y-4">
+                <div className="space-y-4 text-left">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 text-left">
+                    <div className="space-y-2">
                       <label className="block text-sm font-bold text-valentine-soft uppercase">Your Name</label>
                       <input 
                         type="text" 
@@ -374,7 +409,7 @@ function WizardContent() {
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                       />
                     </div>
-                    <div className="space-y-2 text-left">
+                    <div className="space-y-2">
                       <label className="block text-sm font-bold text-valentine-soft uppercase">Their Name</label>
                       <input 
                         type="text" 
@@ -386,13 +421,13 @@ function WizardContent() {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 text-left">
+                    <div className="space-y-2">
                         <label className="block text-sm font-bold text-valentine-soft uppercase flex items-center gap-2">
                             Anniversary Date
                             <span className="group relative">
                                 <Info size={14} className="text-valentine-pink cursor-help" />
                                 <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
-                                    Used to calculate your total time together on the dashboard.
+                                    Used to calculate your total time together.
                                 </span>
                             </span>
                         </label>
@@ -400,10 +435,10 @@ function WizardContent() {
                         type="date" 
                         value={config.anniversaryDate.split('T')[0]}
                         onChange={(e) => updateConfig('anniversaryDate', new Date(e.target.value).toISOString())}
-                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
+                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors text-gray-800"
                         />
                     </div>
-                    <div className="space-y-2 relative text-left">
+                    <div className="space-y-2 relative">
                         <label className="block text-sm font-bold text-valentine-soft uppercase">Duration (Days)</label>
                         <input 
                         type="number" 
@@ -425,7 +460,7 @@ function WizardContent() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-valentine-pink/10 text-left">
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-valentine-pink/10">
                     <div className="space-y-2">
                         <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
                             Custom Background Image
@@ -482,24 +517,24 @@ function WizardContent() {
               {step === 3 && (
                 <div className="space-y-4 text-left">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage of the countdown.</p>
+                    <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage.</p>
                     <span className="group relative">
                         <Info size={14} className="text-valentine-pink cursor-help" />
                         <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
-                            Open Spotify, click "..." on a song → Share → Copy Link. Then paste it here. We'll automatically extract the ID.
+                            Open Spotify, click "..." on a song → Share → Copy Link. Then paste it here.
                         </span>
                     </span>
                   </div>
-                  <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4 text-left">
+                  <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
                     {getDaysArray().map((day) => (
-                        <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl text-left">
+                        <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl">
                         <label className="block text-[10px] font-bold text-valentine-soft uppercase tracking-wider">Feb {day} Track</label>
                         <input 
                             type="text" 
                             value={config.spotifyTracks[`day${day}`] || ""}
                             onChange={(e) => updateConfig(`spotifyTracks.day${day}`, e.target.value.split('/').pop()?.split('?')[0])}
                             placeholder="Paste Spotify Link or ID"
-                            className="w-full p-3 rounded-lg border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors text-sm"
+                            className="w-full p-3 rounded-lg border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors text-sm bg-white"
                         />
                         </div>
                     ))}
@@ -509,62 +544,60 @@ function WizardContent() {
 
               {step === 4 && (
                 <div className="space-y-4">
-                  {!currentLimits.gallery ? (
-                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30 text-left">
-                      <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
-                      <h3 className="text-xl font-bold text-valentine-red mb-2">Photo Gallery is Premium</h3>
-                      <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to upload your favorite memories!</p>
-                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
-                    </div>
-                  ) : (
                     <div className="space-y-4 text-left">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm text-valentine-soft">Upload images from your computer for each day.</p>
-                        <span className="group relative">
+                      <div className="flex items-center gap-2 text-left">
+                        <p className="text-sm text-valentine-soft">Upload images for each day.</p>
+                        <span className="group relative text-left">
                             <Info size={14} className="text-valentine-pink cursor-help" />
                             <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
-                                Upload JPG, PNG, or WebP files. You can select multiple files at once. These will be shown as scratch-off memories!
+                                Upload JPG, PNG, or WebP. These will be shown as scratch-off memories!
                             </span>
                         </span>
                       </div>
-                      <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8">
+                      <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8 text-left">
                         {getDaysArray().map((day) => {
                           const dayKey = `day${day}`;
                           const images = config.galleryImages?.[dayKey] || [];
+                          const isOverLimit = config.plan === 'free' && images.length >= currentLimits.gallery;
+
                           return (
                             <div key={day} className="p-5 bg-valentine-cream/30 rounded-2xl space-y-4 border border-valentine-pink/10">
-                              <div className="flex justify-between items-center">
+                              <div className="flex justify-between items-center text-left">
                                 <label className="block text-[10px] font-bold text-valentine-red uppercase tracking-[0.2em]">
                                   Feb {day} Gallery
                                 </label>
                                 <span className="text-[10px] bg-white px-2 py-1 rounded-full font-bold text-valentine-soft shadow-sm">
-                                    {images.length} Images
+                                    {images.length} / {currentLimits.gallery === 500 ? '∞' : currentLimits.gallery}
                                 </span>
                               </div>
                               
                               <div className="space-y-4 text-left">
-                                <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed border-valentine-pink/30 rounded-xl p-6 transition-all hover:border-valentine-red cursor-pointer bg-white/50 group ${uploading === `gallery_${dayKey}` ? 'pointer-events-none' : ''}`}>
-                                    {uploading === `gallery_${dayKey}` ? (
-                                        <Loader2 className="animate-spin text-valentine-red" size={24} />
-                                    ) : (
-                                        <Plus className="text-valentine-pink group-hover:scale-110 transition-transform" size={24} />
-                                    )}
-                                    <span className="text-xs font-bold text-valentine-soft uppercase tracking-wider">
-                                        {uploading === `gallery_${dayKey}` ? 'Uploading...' : 'Select Photos to Upload'}
-                                    </span>
-                                    <input 
-                                        type="file" 
-                                        multiple 
-                                        accept="image/*"
-                                        className="hidden" 
-                                        onChange={(e) => handleFileUpload(e, `gallery_${dayKey}`, true, dayKey)}
-                                    />
-                                </label>
+                                {isOverLimit ? (
+                                    <UpgradeNudge target="plus" />
+                                ) : (
+                                    <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed border-valentine-pink/30 rounded-xl p-6 transition-all hover:border-valentine-red cursor-pointer bg-white/50 group ${uploading ? 'pointer-events-none' : ''}`}>
+                                        {uploading === `gallery_${dayKey}` ? (
+                                            <Loader2 className="animate-spin text-valentine-red" size={24} />
+                                        ) : (
+                                            <Plus className="text-valentine-pink group-hover:scale-110 transition-transform" size={24} />
+                                        )}
+                                        <span className="text-xs font-bold text-valentine-soft uppercase tracking-wider">
+                                            {uploading === `gallery_${dayKey}` ? 'Uploading...' : 'Select Photos'}
+                                        </span>
+                                        <input 
+                                            type="file" 
+                                            multiple 
+                                            accept="image/*"
+                                            className="hidden" 
+                                            onChange={(e) => handleFileUpload(e, `gallery_${dayKey}`, true, dayKey)}
+                                        />
+                                    </label>
+                                )}
                                 
                                 {images.length > 0 && (
                                     <div className="grid grid-cols-3 gap-2 mt-4 text-left">
                                         {images.map((url, idx) => (
-                                            <div key={idx} className="relative group rounded-lg overflow-hidden border-2 border-valentine-pink/20 aspect-square bg-white shadow-sm">
+                                            <div key={idx} className="relative group rounded-lg overflow-hidden border-2 border-valentine-pink/20 aspect-square bg-white shadow-sm text-left">
                                                 <img src={url} className="w-full h-full object-cover" alt="" />
                                                 <button 
                                                     onClick={() => {
@@ -586,7 +619,6 @@ function WizardContent() {
                         })}
                       </div>
                     </div>
-                  )}
                 </div>
               )}
 
@@ -595,7 +627,7 @@ function WizardContent() {
                   <div className="flex items-center justify-between text-left">
                     <p className="text-sm text-valentine-soft">Write messages that unlock at specific times.</p>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded ${config.notes.length >= currentLimits.notes ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                        {config.notes.length} / {currentLimits.notes === 100 ? '∞' : currentLimits.notes} Used
+                        {config.notes.length} / {currentLimits.notes === 500 ? '∞' : currentLimits.notes} Used
                     </span>
                   </div>
                   
@@ -662,9 +694,9 @@ function WizardContent() {
                   {!currentLimits.video ? (
                     <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30 text-left">
                       <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
-                      <h3 className="text-xl font-bold text-valentine-red mb-2">Secret Cinema is Premium</h3>
-                      <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Sanctuary</b> plan to upload your own memory movie.</p>
-                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
+                      <h3 className="text-xl font-bold text-valentine-red mb-2 text-center">Secret Cinema is Premium</h3>
+                      <p className="text-sm text-valentine-soft mb-6 text-center">Upgrade to <b>The Sanctuary</b> plan to upload your own memory movie.</p>
+                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg block mx-auto">View Plans</button>
                     </div>
                   ) : (
                     <div className="space-y-4 text-left">
@@ -673,7 +705,7 @@ function WizardContent() {
                         <span className="group relative">
                             <Info size={14} className="text-valentine-pink cursor-help" />
                             <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
-                                Upload an MP4 or MOV file. This will be the main feature of your Secret Cinema. Recommended size: under 50MB for faster loading.
+                                Upload an MP4 or MOV file. Under 50MB recommended.
                             </span>
                         </span>
                       </label>
@@ -708,10 +740,10 @@ function WizardContent() {
                                     </div>
                                 )}
                                 <div className="text-center">
-                                    <p className="text-sm font-bold text-valentine-red uppercase tracking-wider">
+                                    <p className="text-sm font-bold text-valentine-red uppercase tracking-wider text-center">
                                         {uploading === 'videoUrl' ? 'Uploading Memory...' : 'Upload Video from PC'}
                                     </p>
-                                    <p className="text-[10px] text-valentine-soft mt-1 italic">Best for .mp4 or .mov files</p>
+                                    <p className="text-[10px] text-valentine-soft mt-1 italic text-center">Best for .mp4 or .mov files</p>
                                 </div>
                                 <input 
                                     type="file" 
@@ -736,7 +768,7 @@ function WizardContent() {
                         <span className="group relative">
                             <Info size={14} className="text-valentine-pink cursor-help" />
                             <span className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl leading-relaxed">
-                                A 4-digit code your partner will need to enter to unlock the Secret Cinema. Make it something they'll know!
+                                A 4-digit code to mathematically unlock the memories.
                             </span>
                         </span>
                     </label>
@@ -761,23 +793,22 @@ function WizardContent() {
 
               {step === 8 && (
                 <div className="space-y-8 text-center py-10">
-                  <div className="space-y-2 text-center">
+                  <div className="space-y-2 text-center text-gray-800">
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check size={40} />
                     </div>
                     <h2 className="text-3xl font-bold text-valentine-red">Your Sanctuary is Ready</h2>
-                    <p className="text-valentine-soft text-sm">Everything is packaged and ready to send.</p>
+                    <p className="text-valentine-soft text-sm">Everything is encrypted and ready to send.</p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-xs font-mono text-left bg-gray-50 overflow-hidden text-ellipsis whitespace-nowrap">
+                  <div className="space-y-4 text-left">
+                    <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-xs font-mono bg-gray-50 overflow-hidden">
                       {generatedLink}
                     </div>
-                    {configLength > 4000 && (
-                        <p className="text-[10px] text-orange-600 bg-orange-50 p-2 rounded-lg flex items-center gap-2">
-                            <Info size={12} /> This sanctuary is quite large! If it doesn't open on some apps, try removing a few photos.
-                        </p>
-                    )}
+                    <p className="text-[10px] text-valentine-soft italic leading-relaxed text-center">
+                        <Shield size={10} className="inline mr-1" /> 
+                        Decryption key generated in URL fragment.
+                    </p>
                     <div className="flex flex-col gap-3">
                       <button 
                         onClick={copyToClipboard}
@@ -814,7 +845,7 @@ function WizardContent() {
                         Edit Sanctuary Details
                       </button>
                       
-                      <div className="pt-8 border-t border-valentine-pink/10 mt-4">
+                      <div className="pt-8 border-t border-valentine-pink/10 mt-4 text-center">
                         <button 
                             onClick={handleDelete}
                             disabled={isDeleting}
@@ -824,7 +855,7 @@ function WizardContent() {
                             Delete Sanctuary Permanently
                         </button>
                         <p className="text-[10px] text-valentine-soft mt-2 italic text-center">
-                            * Deleting is destructive and irreversible. No refunds provided.
+                            * Deleting is irreversible.
                         </p>
                       </div>
                     </div>
@@ -867,10 +898,10 @@ function WizardContent() {
           </div>
         )}
         {step < 7 && config.plan !== 'free' && !success && (
-            <div className="p-4 bg-valentine-red/5 flex flex-col items-center justify-center gap-2 border-t border-valentine-pink/10">
+            <div className="p-4 bg-valentine-red/5 flex flex-col items-center justify-center gap-2 border-t border-valentine-pink/10 text-gray-800">
                 <div className="flex items-center gap-4 text-[10px] text-valentine-soft font-bold uppercase tracking-wider">
-                    <span className="flex items-center gap-1"><Shield size={10} /> Secure Stripe Payment</span>
-                    <span className="flex items-center gap-1"><Check size={10} /> One-time purchase</span>
+                    <span className="flex items-center gap-1 text-gray-800"><Shield size={10} /> Secure Stripe Payment</span>
+                    <span className="flex items-center gap-1 text-gray-800"><Check size={10} /> One-time purchase</span>
                 </div>
                 <p className="text-[9px] text-valentine-soft italic text-center opacity-70">
                     By proceeding, you agree that digital goods are non-refundable as processing and storage are immediate.

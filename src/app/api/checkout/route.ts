@@ -42,7 +42,9 @@ export async function POST(req: Request) {
       mode: 'payment',
       metadata: {
         plan: plan,
-        config_backup: JSON.stringify(config).slice(0, 500) // Small backup for verification
+        partner1: config.names.partner1,
+        partner2: config.names.partner2,
+        config_backup: JSON.stringify(config).slice(0, 500)
       },
       success_url: `${req.headers.get('origin')}/wizard?session_id={CHECKOUT_SESSION_ID}&success=true&paid_plan=${plan}`,
       cancel_url: `${req.headers.get('origin')}/wizard?plan=${plan}`,
