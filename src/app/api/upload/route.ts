@@ -28,6 +28,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime', 'image/webp'],
           addRandomSuffix: true,
+          maximumSizeInBytes: pathname.endsWith('.mp4') || pathname.endsWith('.mov') ? 50 * 1024 * 1024 : 10 * 1024 * 1024, // 50MB for video, 10MB for images
           tokenPayload: JSON.stringify({}),
         };
       },

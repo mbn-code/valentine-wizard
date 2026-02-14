@@ -105,23 +105,28 @@ const SecretCinema = () => {
           </div>
           
           <div className="space-y-6">
-            {tracks.map((track) => (
-              <div 
-                key={track.id} 
-                className={`relative transition-all duration-700 cursor-pointer ${selectedTrack === track.id ? 'scale-105 opacity-100' : 'opacity-40 hover:opacity-60'}`}
-                onClick={() => setSelectedTrack(track.id)}
-              >
-                <iframe
-                  style={{ borderRadius: '12px' }}
-                  src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
-                  width="100%"
-                  height="80"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                ></iframe>
-              </div>
-            ))}
+            {tracks.map((track) => {
+              const safeId = track.id?.replace(/[^a-zA-Z0-9]/g, '');
+              return (
+                <div 
+                  key={track.id} 
+                  className={`relative transition-all duration-700 cursor-pointer ${selectedTrack === track.id ? 'scale-105 opacity-100' : 'opacity-40 hover:opacity-60'}`}
+                  onClick={() => setSelectedTrack(track.id)}
+                >
+                  {safeId && (
+                    <iframe
+                      style={{ borderRadius: '12px' }}
+                      src={`https://open.spotify.com/embed/track/${safeId}?utm_source=generator&theme=0`}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                    ></iframe>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 

@@ -145,6 +145,7 @@ export default function Home() {
             <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-bold text-valentine-soft">
               <Link href="/privacy" className="hover:text-valentine-red transition-colors">Privacy Policy</Link>
               <Link href="/terms" className="hover:text-valentine-red transition-colors">Terms of Service</Link>
+              <a href="mailto:malthe@mbn-code.dk?subject=Report%20Content" className="hover:text-valentine-red transition-colors">Report Content</a>
             </div>
             <p className="text-valentine-soft text-[10px] uppercase tracking-tighter">© 2026 Valentine Wizard • <a href="mailto:malthe@mbn-code.dk" className="hover:underline">malthe@mbn-code.dk</a> • Denmark</p>
           </div>

@@ -177,33 +177,36 @@ const Dashboard = () => {
                 </div>
              </motion.div>
 
-             {spotifyItems.map((item, idx) => (
-                <motion.div
-                  key={item.day}
-                  whileHover={{ scale: 1.02 }}
-                  className={`${idx === spotifyItems.length - 1 && spotifyItems.length % 2 !== 0 ? 'md:col-span-2' : 'col-span-1'} bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col`}
-                >
-                  <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Music size={14} aria-hidden="true" />
-                    {item.title}
-                  </h3>
-                  <div className="flex-grow">
-                    {isTrackUnlocked(item.day) && item.id ? (
-                      <div className="w-full h-full min-h-[152px]">
-                        <iframe 
-                          style={{ borderRadius: '12px' }} 
-                          src={`https://open.spotify.com/embed/track/${item.id}?utm_source=generator`} 
-                          width="100%" height="152" frameBorder="0" 
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                          loading="lazy"
-                        ></iframe>
-                      </div>
-                    ) : (
-                      <LockedState day={item.day} />
-                    )}
-                  </div>
-                </motion.div>
-             ))}
+             {spotifyItems.map((item, idx) => {
+                const safeId = item.id?.replace(/[^a-zA-Z0-9]/g, '');
+                return (
+                  <motion.div
+                    key={item.day}
+                    whileHover={{ scale: 1.02 }}
+                    className={`${idx === spotifyItems.length - 1 && spotifyItems.length % 2 !== 0 ? 'md:col-span-2' : 'col-span-1'} bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col`}
+                  >
+                    <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <Music size={14} aria-hidden="true" />
+                      {item.title}
+                    </h3>
+                    <div className="flex-grow">
+                      {isTrackUnlocked(item.day) && safeId ? (
+                        <div className="w-full h-full min-h-[152px]">
+                          <iframe 
+                            style={{ borderRadius: '12px' }} 
+                            src={`https://open.spotify.com/embed/track/${safeId}?utm_source=generator`} 
+                            width="100%" height="152" frameBorder="0" 
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                            loading="lazy"
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <LockedState day={item.day} />
+                      )}
+                    </div>
+                  </motion.div>
+                );
+             })}
           </div>
         </section>
 
