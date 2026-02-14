@@ -6,12 +6,14 @@ import Invitation from '@/components/Invitation';
 import Dashboard from '@/components/Dashboard';
 import { useValentine } from '@/utils/ValentineContext';
 import Link from 'next/link';
-import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon, X, Shield, Lock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon, X, Shield, Lock, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const [phase, setPhase] = useState<'invitation' | 'dashboard' | 'loading'>('loading');
-  const { config } = useValentine();
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+  const { config, setPreviewConfig } = useValentine();
 
   useEffect(() => {
     if (config === undefined) return; 
@@ -32,6 +34,60 @@ export default function Home() {
   if (config === null) {
     return (
       <main className="min-h-screen bg-valentine-cream text-center overflow-x-hidden flex flex-col">
+        {/* Live Preview Overlay */}
+        <AnimatePresence>
+            {isPreviewing && (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="fixed inset-0 z-[2000] bg-valentine-cream overflow-y-auto"
+                >
+                    <div className="sticky top-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-b border-valentine-pink/20 flex justify-between items-center z-[2100]">
+                        <div className="flex items-center gap-2 text-gray-800">
+                            <Sparkles className="text-valentine-red" size={20} />
+                            <span className="text-xs font-bold text-valentine-red uppercase tracking-widest">Sanctuary Demo</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-gray-800">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <div className="relative">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer" 
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                localStorage.setItem('debug_unlock_all', 'true');
+                                            } else {
+                                                localStorage.removeItem('debug_unlock_all');
+                                            }
+                                            setPreviewRefreshKey(prev => prev + 1);
+                                        }}
+                                    />
+                                    <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-valentine-red transition-all shadow-inner"></div>
+                                    <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:left-6 transition-all shadow-md"></div>
+                                </div>
+                                <span className="text-[10px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Force Unlock All</span>
+                            </label>
+                            <button 
+                                onClick={() => {
+                                    setIsPreviewing(false);
+                                    setPreviewConfig(null);
+                                    localStorage.removeItem('debug_unlock_all');
+                                }}
+                                className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg text-xs uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <ArrowLeft size={14} /> Back to Homepage
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="relative">
+                        <PreviewApp forceUpdateKey={previewRefreshKey} />
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+
         {/* Hero Section */}
         <section className="flex-grow flex flex-col items-center justify-center p-8 relative">
           <div className="space-y-6 max-w-2xl relative z-10 text-gray-800">
@@ -48,10 +104,48 @@ export default function Home() {
                 <Zap size={24} className="fill-current" /> Create Your Story
               </Link>
               <button 
-                onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-12 py-5 border-2 border-valentine-red text-valentine-red rounded-full text-2xl font-bold hover:bg-valentine-red/5 transition-all"
+                onClick={() => {
+                    const DEMO_CONFIG: any = {
+                        plan: 'infinite',
+                        names: { partner1: "Malthe", partner2: "My Love" },
+                        anniversaryDate: "2022-07-28T00:00:00",
+                        totalDays: 3,
+                        spotifyTracks: {
+                          "day12": "4riDfclV7kPDT9D58FpmHd",
+                          "day13": "0TZOdKFWNYfnwewAP8R4D8",
+                          "day14": "657CttNzh41EseXiePl3qC",
+                        },
+                        notes: [
+                          { id: "note1", day: 12, content: "My little monkey <3" },
+                          { id: "note2", day: 12, content: "The library :)" },
+                          { id: "note7", day: 12, hour: 13, content: "Extra song relax :)", isSpotify: true, spotifyId: "4S4QJfBGGrC8jRIjJHf1Ka" },
+                          { id: "note3", day: 13, content: "Extra song :)", isSpotify: true, spotifyId: "1fRLjwhspxZPVdV5MOpFeg" },
+                          { id: "note4", day: 13, content: "Drawing on ipad on the mac :)" },
+                          { id: "note5", day: 14, content: "Happy Valentine's Day!" },
+                          { id: "note6", day: 14, content: "The park :)" },
+                          { id: "note8", day: 14, content: "One last song :)", isSpotify: true, spotifyId: "7EAMXbLcL0qXmciM5SwMh2" },
+                        ],
+                        passcode: "1402",
+                        videoUrl: "https://assets.mixkit.io/videos/preview/mixkit-heart-shaped-balloons-floating-in-the-sky-4288-large.mp4",
+                        backgroundUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=80",
+                        galleryImages: {
+                            "day12": [
+                                "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80"
+                            ],
+                            "day13": [
+                                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?auto=format&fit=crop&w=800&q=80"
+                            ],
+                            "day14": [
+                                "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=800&q=80"
+                            ]
+                        }
+                    };
+                    setPreviewConfig(DEMO_CONFIG);
+                    setIsPreviewing(true);
+                }}
+                className="px-12 py-5 border-2 border-valentine-red text-valentine-red rounded-full text-2xl font-bold hover:bg-valentine-red/5 transition-all flex items-center gap-2 justify-center"
               >
-                See Features
+                <ImageIcon size={24} /> Demo Preview
               </button>
             </div>
           </div>
@@ -70,7 +164,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6"
+                className="space-y-6 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Heart size={24} className="fill-current" />
@@ -107,7 +201,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6 order-1 md:order-2"
+                className="space-y-6 order-1 md:order-2 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Music size={24} />
@@ -125,7 +219,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6"
+                className="space-y-6 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <ImageIcon size={24} />
@@ -157,7 +251,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6 order-1 md:order-2"
+                className="space-y-6 order-1 md:order-2 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Zap size={24} className="fill-current" />
@@ -175,7 +269,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6"
+                className="space-y-6 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Music size={24} />
@@ -197,7 +291,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-              <div className="order-2 md:order-1 bg-valentine-cream rounded-3xl p-8 shadow-inner border-2 border-valentine-pink/10 aspect-video flex items-center justify-center relative">
+              <div className="order-2 md:order-1 bg-valentine-cream rounded-3xl p-8 shadow-inner border-2 border-valentine-pink/10 aspect-video flex items-center justify-center relative text-left">
                 <div className="w-full h-full bg-white rounded-xl shadow-lg border-2 border-valentine-pink/20 relative overflow-hidden">
                     <div className="absolute inset-0 bg-valentine-pink/10" />
                     <Heart className="absolute top-4 right-4 text-valentine-red/20" size={32} />
@@ -208,7 +302,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6 order-1 md:order-2"
+                className="space-y-6 order-1 md:order-2 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Star size={24} />
@@ -226,7 +320,7 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="space-y-6"
+                className="space-y-6 text-left"
               >
                 <div className="w-12 h-12 bg-valentine-red/10 rounded-2xl flex items-center justify-center text-valentine-red">
                   <Shield size={24} />
@@ -247,7 +341,7 @@ export default function Home() {
         {/* Pricing Section */}
         <section id="pricing" className="py-24 px-8 bg-white text-gray-800">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center">Pricing</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-16 font-sacramento text-center text-gray-800">Pricing</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
               {/* Spark Plan */}
@@ -278,12 +372,12 @@ export default function Home() {
                   <li className="flex items-center gap-3 text-valentine-soft font-medium"><Check className="text-green-500" size={16} /> Music for every day</li>
                   <li className="flex items-center gap-3 text-valentine-soft/40"><X size={16} /> No Cinema Video</li>
                 </ul>
-                <Link href="/wizard?plan=plus" className="w-full py-4 text-center bg-valentine-red text-white rounded-xl font-bold shadow-lg">Go Romance</Link>
+                <Link href="/wizard?plan=plus" className="w-full py-4 text-center bg-valentine-red text-white rounded-xl font-bold shadow-lg text-gray-800">Go Romance</Link>
               </div>
 
               {/* Infinite Plan */}
               <div className="p-8 rounded-3xl border-2 border-valentine-pink/20 flex flex-col text-left hover:border-valentine-pink transition-all">
-                <h3 className="text-xl font-bold text-valentine-red mb-2">The Sanctuary</h3>
+                <h3 className="text-xl font-bold text-valentine-red mb-2 text-gray-800">The Sanctuary</h3>
                 <div className="text-3xl font-bold text-valentine-red mb-6">$12.00</div>
                 <ul className="space-y-3 mb-8 flex-grow text-sm text-gray-800">
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> <b>14 Day</b> Journey</li>
@@ -293,7 +387,7 @@ export default function Home() {
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Passcodes</li>
                   <li className="flex items-center gap-3 text-valentine-soft"><Check className="text-green-500" size={16} /> Custom Background</li>
                 </ul>
-                <Link href="/wizard?plan=infinite" className="w-full py-3 text-center border-2 border-valentine-pink text-valentine-soft rounded-xl font-bold text-sm">Full Sanctuary</Link>
+                <Link href="/wizard?plan=infinite" className="w-full py-3 text-center border-2 border-valentine-pink text-valentine-soft rounded-xl font-bold text-sm text-gray-800">Full Sanctuary</Link>
               </div>
             </div>
           </div>
@@ -326,15 +420,15 @@ export default function Home() {
 
         <footer className="py-12 border-t bg-valentine-cream/50 text-gray-800">
           <div className="max-w-2xl mx-auto space-y-4 px-4 text-center">
-            <p className="text-valentine-soft text-sm italic">"I originally built this as a private gift for my girlfriend. After friends asked to use it, I decided to turn it into a wizard for everyone."</p>
+            <p className="text-valentine-soft text-sm italic text-gray-800">"I originally built this as a private gift for my girlfriend. After friends asked to use it, I decided to turn it into a wizard for everyone."</p>
             <div className="h-[1px] w-12 bg-valentine-red/20 mx-auto" />
-            <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-bold text-valentine-soft">
-              <Link href="/privacy" className="hover:text-valentine-red transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-valentine-red transition-colors">Terms of Service</Link>
-              <Link href="/revoke" className="hover:text-red-500 transition-colors">Revoke Sanctuary</Link>
-              <a href="mailto:malthe@mbn-code.dk?subject=Report%20Content" className="hover:text-valentine-red transition-colors">Report Content</a>
+            <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-bold text-valentine-soft text-gray-800">
+              <Link href="/privacy" className="hover:text-valentine-red transition-colors text-gray-800">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-valentine-red transition-colors text-gray-800">Terms of Service</Link>
+              <Link href="/revoke" className="hover:text-red-500 transition-colors text-gray-800">Revoke Sanctuary</Link>
+              <a href="mailto:malthe@mbn-code.dk?subject=Report%20Content" className="hover:text-valentine-red transition-colors text-gray-800">Report Content</a>
             </div>
-            <p className="text-valentine-soft text-[10px] uppercase tracking-tighter">© 2026 Valentine Wizard • <a href="mailto:malthe@mbn-code.dk" className="hover:underline">malthe@mbn-code.dk</a> • Denmark</p>
+            <p className="text-valentine-soft text-[10px] uppercase tracking-tighter text-gray-800">© 2026 Valentine Wizard • <a href="mailto:malthe@mbn-code.dk" className="hover:underline text-gray-800">malthe@mbn-code.dk</a> • Denmark</p>
           </div>
         </footer>
       </main>
@@ -361,4 +455,18 @@ export default function Home() {
       )}
     </main>
   );
+}
+
+function PreviewApp({ forceUpdateKey }: { forceUpdateKey: number }) {
+    const [phase, setPhase] = useState<'invitation' | 'dashboard'>('invitation');
+    
+    return (
+        <div className="min-h-screen text-gray-800" key={forceUpdateKey}>
+            {phase === 'invitation' ? (
+                <Invitation onComplete={() => setPhase('dashboard')} />
+            ) : (
+                <Dashboard />
+            )}
+        </div>
+    );
 }
