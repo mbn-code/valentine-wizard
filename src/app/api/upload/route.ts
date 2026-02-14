@@ -14,6 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       ) => {
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime', 'image/webp'],
+          addRandomSuffix: true, // Ensure unique filenames even if users upload files with same names
           tokenPayload: JSON.stringify({}),
         };
       },
