@@ -118,6 +118,31 @@ export default function Home() {
           </div>
         </section>
 
+        {/* FAQ Section */}
+        <section id="faq" className="py-24 px-8 bg-valentine-cream/30 text-gray-800">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-12 font-sacramento text-center">Frequently Asked Questions</h2>
+            <div className="space-y-6 text-left">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
+                <h3 className="font-bold text-valentine-red mb-2 italic">How do I send it to my partner?</h3>
+                <p className="text-sm text-valentine-soft">Once you finish the wizard, you'll get a unique link. Just copy and send it via text, DM, or email!</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
+                <h3 className="font-bold text-valentine-red mb-2 italic">Does the link expire?</h3>
+                <p className="text-sm text-valentine-soft">No. Since all the data is in the link itself, it will work as long as this website exists.</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
+                <h3 className="font-bold text-valentine-red mb-2 italic">Can I get a refund?</h3>
+                <p className="text-sm text-valentine-soft">Due to the immediate processing and hosting of your media assets, all sales are final. Please use the free tier to test the experience first!</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
+                <h3 className="font-bold text-valentine-red mb-2 italic">What happens to my photos?</h3>
+                <p className="text-sm text-valentine-soft">Your photos are stored securely. You can permanently delete them at any time using the delete button in the Wizard.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <footer className="py-12 border-t bg-valentine-cream/50 text-gray-800">
           <div className="max-w-2xl mx-auto space-y-4 px-4 text-center">
             <p className="text-valentine-soft text-sm italic">"I originally built this as a private gift for my girlfriend. After friends asked to use it, I decided to turn it into a wizard for everyone."</p>

@@ -46,7 +46,7 @@ export default function PrivacyPolicy() {
 
           <h2 className="text-xl font-bold text-valentine-red mt-6">5. Contact</h2>
           <p>
-            If you have questions about your privacy, you can reach out via our GitHub repository.
+            If you have questions about your privacy, you can reach out to us at <span className="font-bold">support@valentize.com</span> (or via our GitHub repository).
           </p>
         </section>
       </div>

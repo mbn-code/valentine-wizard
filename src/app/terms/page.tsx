@@ -48,6 +48,11 @@ export default function TermsOfService() {
           <p>
             The service is provided "as is". We are not responsible for links becoming inaccessible due to browser changes, hosting provider downtime, or user accidental deletion.
           </p>
+
+          <h2 className="text-xl font-bold text-valentine-red mt-6">7. Contact</h2>
+          <p>
+            For support or legal inquiries, contact <span className="font-bold">support@valentize.com</span>.
+          </p>
         </section>
       </div>
     </main>
