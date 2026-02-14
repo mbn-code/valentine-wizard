@@ -51,8 +51,8 @@ export default function WizardPage() {
     { title: "Select Plan", icon: <Star /> },
     { title: "The Couple", icon: <Heart /> },
     { title: "The Music", icon: <Music /> },
-    { title: "The Video", icon: <ImageIcon /> },
     { title: "The Notes", icon: <MessageSquare /> },
+    { title: "The Video", icon: <ImageIcon /> },
     { title: "The Secret", icon: <Lock /> },
     { title: "Share", icon: <Check /> }
   ];
@@ -100,11 +100,11 @@ export default function WizardPage() {
                   >
                     <h3 className="text-xl font-bold text-valentine-red mb-2">Free Plan</h3>
                     <ul className="text-sm text-valentine-soft space-y-2 mb-4">
-                      <li className="flex items-center gap-2"><Check size={14} /> Basic Dashboard</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> 1 Spotify Track</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> 3 Secret Notes</li>
-                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Custom Video</li>
-                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Custom Gallery</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Full Dashboard</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> 3 Spotify Tracks</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> 10 Secret Notes</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Photo Gallery</li>
+                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Custom Secret Cinema</li>
                     </ul>
                     <div className="text-2xl font-bold text-valentine-red">$0</div>
                   </div>
@@ -113,14 +113,14 @@ export default function WizardPage() {
                     onClick={() => updateConfig('plan', 'pro')}
                     className={`p-6 rounded-2xl border-4 cursor-pointer transition-all relative overflow-hidden ${config.plan === 'pro' ? 'border-valentine-red bg-valentine-red/5 shadow-inner' : 'border-valentine-pink/20 hover:border-valentine-pink'}`}
                   >
-                    <div className="absolute top-0 right-0 bg-valentine-red text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-widest">Recommended</div>
+                    <div className="absolute top-0 right-0 bg-valentine-red text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-widest">Premium</div>
                     <h3 className="text-xl font-bold text-valentine-red mb-2 flex items-center gap-2">Pro Plan <Sparkles size={18} className="text-yellow-500 fill-yellow-500" /></h3>
                     <ul className="text-sm text-valentine-soft space-y-2 mb-4">
-                      <li className="flex items-center gap-2"><Check size={14} /> Full Customization</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> 3+ Spotify Tracks</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Unlimited Notes</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Custom Secret Video</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Personal Gallery (URLs)</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Custom Secret Cinema (Video)</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Unlimited Secret Notes</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Custom Passcodes</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Remove Branding</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> High-Speed Delivery</li>
                     </ul>
                     <div className="text-2xl font-bold text-valentine-red">$9.99 <span className="text-xs font-normal text-valentine-soft">One-time</span></div>
                   </div>
@@ -167,17 +167,13 @@ export default function WizardPage() {
                 <div className="space-y-4">
                   <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for the unlockable stages.</p>
                   {[12, 13, 14].map((day) => (
-                    <div key={day} className={`space-y-2 ${(config.plan === 'free' && day < 14) ? 'opacity-50 pointer-events-none' : ''}`}>
-                      <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
-                        Feb {day} Track ID
-                        {config.plan === 'free' && day < 14 && <span className="text-[10px] text-valentine-red font-bold">PRO ONLY</span>}
-                      </label>
+                    <div key={day} className="space-y-2">
+                      <label className="block text-sm font-bold text-valentine-soft uppercase">Feb {day} Track ID</label>
                       <input 
                         type="text" 
                         value={(config.spotifyTracks as any)[`day${day}`]}
                         onChange={(e) => updateConfig(`spotifyTracks.day${day}`, e.target.value.split('/').pop()?.split('?')[0])}
-                        placeholder={config.plan === 'free' && day < 14 ? "Default Track" : "Paste Spotify Link or ID"}
-                        disabled={config.plan === 'free' && day < 14}
+                        placeholder="Paste Spotify Link or ID"
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                       />
                     </div>
@@ -186,31 +182,6 @@ export default function WizardPage() {
               )}
 
               {step === 4 && (
-                <div className="space-y-4">
-                  {config.plan === 'free' ? (
-                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
-                      <Lock size={48} className="mx-auto text-valentine-pink mb-4" />
-                      <h3 className="text-xl font-bold text-valentine-red mb-2">Custom Video is Pro Only</h3>
-                      <p className="text-sm text-valentine-soft mb-6">Upgrade to Pro to include your own personal memory video in the Secret Cinema.</p>
-                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">Upgrade to Pro</button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <label className="block text-sm font-bold text-valentine-soft uppercase">Memory Video URL</label>
-                      <input 
-                        type="text" 
-                        value={config.videoUrl}
-                        onChange={(e) => updateConfig('videoUrl', e.target.value)}
-                        placeholder="Direct link to .mp4 or .mov"
-                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
-                      />
-                      <p className="text-xs text-valentine-soft">Direct link to a hosted video file.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {step === 5 && (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {config.notes.map((note, idx) => (
                     <div key={note.id} className="p-4 bg-valentine-cream/50 rounded-2xl space-y-3 relative group">
@@ -255,8 +226,8 @@ export default function WizardPage() {
                   ))}
                   <button 
                     onClick={() => {
-                        if (config.plan === 'free' && config.notes.length >= 3) {
-                            alert("Free plan is limited to 3 notes. Upgrade to Pro for unlimited!");
+                        if (config.plan === 'free' && config.notes.length >= 10) {
+                            alert("Free plan is limited to 10 notes. Upgrade to Pro for unlimited!");
                             return;
                         }
                         const newNotes = [...config.notes, { id: `note${Date.now()}`, day: 14, content: '' }];
@@ -264,8 +235,33 @@ export default function WizardPage() {
                     }}
                     className="w-full py-3 border-2 border-dashed border-valentine-red text-valentine-red rounded-2xl font-bold hover:bg-valentine-red/5 transition-colors"
                   >
-                    + Add Another Note {config.plan === 'free' && `(${config.notes.length}/3)`}
+                    + Add Another Note {config.plan === 'free' && `(${config.notes.length}/10)`}
                   </button>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="space-y-4">
+                  {config.plan === 'free' ? (
+                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                      <Lock size={48} className="mx-auto text-valentine-pink mb-4" />
+                      <h3 className="text-xl font-bold text-valentine-red mb-2">Custom Video is Pro Only</h3>
+                      <p className="text-sm text-valentine-soft mb-6">Upgrade to Pro to include your own personal memory video in the Secret Cinema.</p>
+                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">Upgrade to Pro</button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-valentine-soft uppercase">Memory Video URL</label>
+                      <input 
+                        type="text" 
+                        value={config.videoUrl}
+                        onChange={(e) => updateConfig('videoUrl', e.target.value)}
+                        placeholder="Direct link to .mp4 or .mov"
+                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
+                      />
+                      <p className="text-xs text-valentine-soft">Direct link to a hosted video file (e.g. Dropbox, Cloudinary, etc).</p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -283,7 +279,7 @@ export default function WizardPage() {
                       onChange={(e) => updateConfig('passcode', e.target.value.replace(/\D/g, ''))}
                       className="w-full p-4 text-center text-4xl tracking-widest font-bold rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                     />
-                    <p className="text-xs text-valentine-soft text-center">Default code is 1234 for free plan.</p>
+                    <p className="text-xs text-valentine-soft text-center">Default code is 1402 for free plan.</p>
                   </div>
                 </div>
               )}

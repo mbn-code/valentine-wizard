@@ -194,12 +194,7 @@ const Dashboard = () => {
                     {item.title}
                   </h3>
                   <div className="flex-grow">
-                    {(config.plan === 'free' && item.day < 14) ? (
-                        <div className="flex flex-col items-center justify-center h-full text-valentine-soft/40 p-4">
-                            <Lock size={24} className="mb-2" />
-                            <p className="text-[10px] uppercase font-bold tracking-widest">Locked in Free Plan</p>
-                        </div>
-                    ) : isTrackUnlocked(item.day) && item.id ? (
+                    {isTrackUnlocked(item.day) && item.id ? (
                       <div className="w-full h-full min-h-[152px]">
                         <iframe 
                           style={{ borderRadius: '12px' }} 
@@ -253,29 +248,25 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {config.plan === 'pro' && (
-            <>
-                <Gallery />
-                <SecretCinema />
-            </>
-        )}
-
-        {config.plan === 'free' && (
+        <Gallery />
+        
+        {config.plan === 'pro' ? (
+            <SecretCinema />
+        ) : (
             <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
                 <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
-                <h3 className="text-xl font-bold text-valentine-red mb-2">Want a personal Photo Gallery & Secret Cinema?</h3>
-                <p className="text-sm text-valentine-soft mb-6">Ask your partner to upgrade to the Pro plan!</p>
-                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block">Create your own Sanctuary</Link>
+                <h3 className="text-xl font-bold text-valentine-red mb-2">Unlock your Secret Cinema?</h3>
+                <p className="text-sm text-valentine-soft mb-6">Upgrade to Pro to add a custom memory video player!</p>
+                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block">Upgrade to Pro</Link>
             </div>
         )}
       </div>
 
-      {/* Free Plan Footer */}
       {config.plan === 'free' && (
         <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50">
             <p className="text-xs text-valentine-soft font-medium flex items-center justify-center gap-2">
-                Powered by <span className="font-bold text-valentine-red uppercase tracking-tighter">Valentine Wizard</span>
-                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Create yours →</Link>
+                Created with <span className="font-bold text-valentine-red uppercase tracking-tighter">Valentine Wizard</span>
+                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours free →</Link>
             </p>
         </div>
       )}

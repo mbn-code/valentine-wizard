@@ -35,26 +35,9 @@ const Gallery = () => {
 
   if (!config) return null;
 
-  const imagesDay12 = config.galleryImages?.day12 || [
-    "IMG_1254.JPEG", "IMG_1290.JPEG", "IMG_1292.JPEG", "IMG_1307.JPEG", "IMG_2104.JPG", 
-    "IMG_2139.JPG", "IMG_2140.JPEG", "IMG_3117.JPEG", "IMG_3119.JPG", "IMG_3122.JPEG", 
-    "IMG_3436.JPEG", "IMG_5365.JPG", "IMG_5383.JPG", "IMG_6995.JPG", "IMG_8156.JPG", 
-    "IMG_8161.JPG", "IMG_8165.JPG", "IMG_8172.JPG", "IMG_8183.JPG", "IMG_8190.JPG", 
-    "lp_image-1.JPEG", "lp_image-2.JPEG", "lp_image.JPEG"
-  ];
-  const imagesDay13 = config.galleryImages?.day13 || [
-    "IMG_0638.jpeg", "IMG_0639.jpeg", "IMG_0643.jpeg", "IMG_0647.jpeg", "IMG_0663.jpeg", 
-    "IMG_0665.jpeg", "IMG_0712.jpeg", "IMG_0724.jpeg", "IMG_0746.jpeg", "IMG_0799.jpeg", 
-    "IMG_0807.jpeg", "IMG_0929.jpeg", "IMG_0948.jpeg", "IMG_1004.jpeg", "IMG_1019.jpeg", 
-    "IMG_1134.jpeg", "IMG_1135.jpeg", "IMG_1137.jpeg", "IMG_1140.jpeg", "IMG_1250.jpeg", 
-    "IMG_1257.jpeg", "IMG_2527.jpeg", "lp_image.jpeg"
-  ];
-  const imagesDay14 = config.galleryImages?.day14 || [
-    "IMG_0666.jpeg", "IMG_0746.jpeg", "IMG_0767.jpeg", "IMG_0785.jpeg", "IMG_0929.jpeg", 
-    "IMG_0961.jpeg", "IMG_0987.jpeg", "IMG_1023.jpeg", "IMG_1135.jpeg", "IMG_1140.jpeg", 
-    "IMG_1225.jpeg", "IMG_1239.jpeg", "IMG_1395.jpeg", "IMG_1410.jpeg", "IMG_1725.jpeg", 
-    "IMG_1727.jpeg", "IMG_1970.jpeg", "IMG_2461.jpeg"
-  ];
+  const imagesDay12 = config.galleryImages?.day12 || [];
+  const imagesDay13 = config.galleryImages?.day13 || [];
+  const imagesDay14 = config.galleryImages?.day14 || [];
 
   const allSections = [
     { day: 12, images: imagesDay12, label: "Part 1: The Beginning", folder: "day1" },
@@ -75,6 +58,10 @@ const Gallery = () => {
     const index = unlockedImages.findIndex(img => img.id === id);
     if (index !== -1) setLightboxIndex(index);
   };
+
+  if (unlockedImages.length === 0 && !allSections.some(s => !isTrackUnlocked(s.day))) {
+      return null;
+  }
 
   return (
     <div className="mt-12 space-y-12">
