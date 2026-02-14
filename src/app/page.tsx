@@ -6,7 +6,7 @@ import Invitation from '@/components/Invitation';
 import Dashboard from '@/components/Dashboard';
 import { useValentine } from '@/utils/ValentineContext';
 import Link from 'next/link';
-import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon } from 'lucide-react';
+import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -22,9 +22,6 @@ export default function Home() {
 
     const isCompleted = localStorage.getItem(`valentine_completed_${JSON.stringify(config.names)}`) === 'true';
     
-    // Always show invitation first if not completed, 
-    // unless it's the free tier and we're past the date (original logic)
-    // Actually, let's just always show it if not completed for a better experience.
     if (isCompleted) {
       setPhase('dashboard');
     } else {
@@ -37,7 +34,7 @@ export default function Home() {
       <main className="min-h-screen bg-valentine-cream text-center overflow-x-hidden flex flex-col">
         {/* Hero Section */}
         <section className="flex-grow flex flex-col items-center justify-center p-8 relative">
-          <div className="space-y-6 max-w-2xl relative z-10">
+          <div className="space-y-6 max-w-2xl relative z-10 text-gray-800">
             <Heart size={80} className="text-valentine-red mx-auto fill-valentine-red animate-pulse" />
             <h1 className="text-6xl md:text-8xl font-bold text-valentine-red font-sacramento">Valentine Wizard</h1>
             <p className="text-xl md:text-2xl text-valentine-soft leading-relaxed">
@@ -122,7 +119,7 @@ export default function Home() {
         <section id="faq" className="py-24 px-8 bg-valentine-cream/30 text-gray-800">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-bold text-valentine-red mb-12 font-sacramento text-center">Frequently Asked Questions</h2>
-            <div className="space-y-6 text-left">
+            <div className="space-y-6 text-left text-gray-800">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-valentine-pink/10">
                 <h3 className="font-bold text-valentine-red mb-2 italic">How do I send it to my partner?</h3>
                 <p className="text-sm text-valentine-soft">Once you finish the wizard, you'll get a unique link. Just copy and send it via text, DM, or email!</p>
@@ -151,7 +148,7 @@ export default function Home() {
               <Link href="/privacy" className="hover:text-valentine-red transition-colors">Privacy Policy</Link>
               <Link href="/terms" className="hover:text-valentine-red transition-colors">Terms of Service</Link>
             </div>
-            <p className="text-valentine-soft text-[10px] uppercase tracking-tighter">© 2026 Valentine Wizard • Built with ❤️ in Denmark</p>
+            <p className="text-valentine-soft text-[10px] uppercase tracking-tighter">© 2026 Valentine Wizard • <a href="mailto:malthe@mbn-code.dk" className="hover:underline">malthe@mbn-code.dk</a> • Denmark</p>
           </div>
         </footer>
       </main>
@@ -177,23 +174,5 @@ export default function Home() {
         <Dashboard />
       )}
     </main>
-  );
-}
-
-function X({ size }: { size: number }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-    </svg>
   );
 }

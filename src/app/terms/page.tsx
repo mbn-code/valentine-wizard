@@ -51,7 +51,7 @@ export default function TermsOfService() {
 
           <h2 className="text-xl font-bold text-valentine-red mt-6">7. Contact</h2>
           <p>
-            For support or legal inquiries, contact <span className="font-bold">support@valentize.com</span>.
+            For support or legal inquiries, contact <span className="font-bold">malthe@mbn-code.dk</span>.
           </p>
         </section>
       </div>

@@ -753,6 +753,13 @@ function WizardContent() {
                       >
                         Preview Sanctuary
                       </a>
+
+                      <button 
+                        onClick={() => setStep(2)}
+                        className="w-full text-center text-[10px] text-valentine-soft uppercase tracking-widest font-bold mt-4 hover:text-valentine-red transition-colors"
+                      >
+                        Edit Sanctuary Details
+                      </button>
                       
                       <div className="pt-8 border-t border-valentine-pink/10 mt-4">
                         <button 
