@@ -36,6 +36,7 @@ const DEFAULT_CONFIG: ValentineConfig = {
   ],
   passcode: "1402",
   videoUrl: "/assets/videos/joyful_moments.mov",
+  backgroundUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=1200&q=80",
   galleryImages: {
       "day12": [
           "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&q=80",

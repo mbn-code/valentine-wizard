@@ -19,6 +19,7 @@ export interface ValentineConfig {
   }[];
   passcode: string;
   videoUrl?: string;
+  backgroundUrl?: string;
   galleryImages?: Record<string, string[]>; // "dayX" -> array of image URLs
 }
 

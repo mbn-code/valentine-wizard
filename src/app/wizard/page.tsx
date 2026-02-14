@@ -58,9 +58,9 @@ function WizardContent() {
   }, [success, paidPlan]);
 
   const PLAN_LIMITS = {
-    free: { days: 1, notes: 3, gallery: false, video: false, branding: true },
-    plus: { days: 7, notes: 10, gallery: true, video: false, branding: false },
-    infinite: { days: 14, notes: 100, gallery: true, video: true, branding: false }
+    free: { days: 1, notes: 3, gallery: false, video: false, branding: true, background: false },
+    plus: { days: 7, notes: 10, gallery: true, video: false, branding: false, background: true },
+    infinite: { days: 14, notes: 100, gallery: true, video: true, branding: false, background: true }
   };
 
   const currentLimits = PLAN_LIMITS[config.plan];
@@ -243,9 +243,27 @@ function WizardContent() {
                                 Custom Video Player
                             </li>
                         </ul>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 pt-4">
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
+                            Custom Background Image URL
+                            {!currentLimits.background && <span className="text-[10px] text-valentine-red font-bold uppercase">Plus/Infinite Only</span>}
+                        </label>
+                        <input 
+                        type="text" 
+                        value={config.backgroundUrl || ""}
+                        disabled={!currentLimits.background}
+                        onChange={(e) => updateConfig('backgroundUrl', e.target.value)}
+                        placeholder="Paste image URL (e.g. from Imgur)"
+                        className={`w-full p-4 rounded-xl border-2 transition-all outline-none ${!currentLimits.background ? 'bg-valentine-cream/50 cursor-not-allowed border-valentine-pink/10' : 'border-valentine-pink/20 focus:border-valentine-red'}`}
+                        />
+                        {!currentLimits.background && <UpgradeNudge target="plus" />}
                     </div>
+                  </div>
                 </div>
               )}
+
 
               {step === 2 && (
                 <div className="space-y-4">

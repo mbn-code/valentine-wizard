@@ -162,6 +162,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-valentine-cream p-4 md:p-8 relative pb-32">
+      {config.backgroundUrl && (
+        <div 
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{ 
+            backgroundImage: `url(${config.backgroundUrl})`,
+            opacity: 0.15 // Subtle blend
+          }}
+        />
+      )}
       <Ambiance />
       
       <div className="max-w-4xl mx-auto space-y-12 relative z-10">

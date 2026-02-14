@@ -66,7 +66,16 @@ const Invitation = ({ onComplete }: InvitationProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-valentine-cream overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-valentine-cream overflow-hidden relative">
+      {config?.backgroundUrl && (
+        <div 
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+          style={{ 
+            backgroundImage: `url(${config.backgroundUrl})`,
+            opacity: 0.15
+          }}
+        />
+      )}
       <AnimatePresence mode="wait">
         {phase === 'tapping' && (
           <motion.div 
