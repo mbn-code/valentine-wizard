@@ -111,7 +111,11 @@ export default function Home() {
         </section>
 
         <footer className="py-12 border-t bg-valentine-cream/50">
-          <p className="text-valentine-soft text-sm">© 2026 Valentine Wizard</p>
+          <div className="max-w-2xl mx-auto space-y-4 px-4">
+            <p className="text-valentine-soft text-sm italic">"I originally built this as a private gift for my girlfriend. After friends asked to use it, I decided to turn it into a wizard for everyone."</p>
+            <div className="h-[1px] w-12 bg-valentine-red/20 mx-auto" />
+            <p className="text-valentine-soft text-xs">© 2026 Valentine Wizard • Built with ❤️ in Denmark</p>
+          </div>
         </footer>
       </main>
     );
