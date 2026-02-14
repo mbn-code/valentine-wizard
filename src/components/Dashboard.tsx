@@ -143,11 +143,22 @@ const Dashboard = () => {
 
   if (!config) return null;
 
-  const spotifyItems = [
-    { day: 12, id: config.spotifyTracks.day12, title: 'Feb 12: Where it Began' },
-    { day: 13, id: config.spotifyTracks.day13, title: 'Feb 13: The Journey' },
-    { day: 14, id: config.spotifyTracks.day14, title: 'Feb 14: Today & Always' }
-  ];
+  const getSpotifyItems = () => {
+    const items = [];
+    const totalDays = config.totalDays || 3;
+    for (let i = 0; i < totalDays; i++) {
+      const dayNum = 14 - i;
+      const trackId = config.spotifyTracks[`day${dayNum}`];
+      items.push({
+        day: dayNum,
+        id: trackId,
+        title: dayNum === 14 ? 'Feb 14: Valentine\'s Day' : `Feb ${dayNum}: The Countdown`
+      });
+    }
+    return items.sort((a, b) => a.day - b.day);
+  };
+
+  const spotifyItems = getSpotifyItems();
 
   return (
     <div className="min-h-screen bg-valentine-cream p-4 md:p-8 relative pb-32">
@@ -159,11 +170,11 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={handleTitleTap}
-            className="text-4xl md:text-6xl font-bold text-valentine-red cursor-pointer select-none"
+            className="text-4xl md:text-6xl font-bold text-valentine-red cursor-pointer select-none font-sacramento"
           >
             Our Sanctuary
           </motion.h1>
-          <p className="text-valentine-soft font-medium text-sm md:text-base">Everything I love about us, in one place.</p>
+          <p className="text-valentine-soft font-medium text-sm md:text-base italic">Everything I love about us, in one place.</p>
         </header>
 
         <section className="space-y-6">
@@ -187,7 +198,7 @@ const Dashboard = () => {
                 <motion.div
                   key={item.day}
                   whileHover={{ scale: 1.02 }}
-                  className={`${idx === 2 ? 'md:col-span-2' : 'col-span-1'} bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col`}
+                  className={`${idx === spotifyItems.length - 1 && spotifyItems.length % 2 !== 0 ? 'md:col-span-2' : 'col-span-1'} bg-white/50 backdrop-blur-sm border-2 border-valentine-pink/20 rounded-3xl p-6 shadow-sm flex flex-col`}
                 >
                   <h3 className="text-valentine-soft text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                     <Music size={14} aria-hidden="true" />

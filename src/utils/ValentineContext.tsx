@@ -18,11 +18,11 @@ const DEFAULT_CONFIG: ValentineConfig = {
     partner2: "Me"
   },
   anniversaryDate: "2022-07-28T00:00:00",
+  totalDays: 3,
   spotifyTracks: {
-    day12: "4riDfclV7kPDT9D58FpmHd",
-    day13: "0TZOdKFWNYfnwewAP8R4D8",
-    day14: "657CttNzh41EseXiePl3qC",
-    extra: ["4S4QJfBGGrC8jRIjJHf1Ka", "1fRLjwhspxZPVdV5MOpFeg", "7EAMXbLcL0qXmciM5SwMh2"]
+    "day12": "4riDfclV7kPDT9D58FpmHd",
+    "day13": "0TZOdKFWNYfnwewAP8R4D8",
+    "day14": "657CttNzh41EseXiePl3qC",
   },
   notes: [
     { id: "note1", day: 12, content: "Min lille abe <3" },

@@ -7,15 +7,11 @@ export interface ValentineConfig {
     partner2: string;
   };
   anniversaryDate: string; // ISO format
-  spotifyTracks: {
-    day12: string; // track ID
-    day13: string;
-    day14: string;
-    extra?: string[];
-  };
+  totalDays: number; // Number of days leading up to and including Feb 14th
+  spotifyTracks: Record<string, string>; // "dayX" -> track ID (e.g. "day14")
   notes: {
     id: string;
-    day: number;
+    day: number; // Day of February (1-14)
     hour?: number;
     content: string;
     isSpotify?: boolean;
@@ -23,11 +19,7 @@ export interface ValentineConfig {
   }[];
   passcode: string;
   videoUrl?: string;
-  galleryImages?: {
-    day12: string[];
-    day13: string[];
-    day14: string[];
-  };
+  galleryImages?: Record<string, string[]>; // "dayX" -> array of image URLs
 }
 
 export function encodeConfig(config: ValentineConfig): string {

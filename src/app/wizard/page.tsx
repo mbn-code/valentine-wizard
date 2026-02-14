@@ -12,7 +12,8 @@ export default function WizardPage() {
     plan: 'free',
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
-    spotifyTracks: { day12: '', day13: '', day14: '' },
+    totalDays: 3,
+    spotifyTracks: { "day14": "" },
     notes: [
       { id: 'note1', day: 14, content: 'Happy Valentine\'s Day!' }
     ],
@@ -28,6 +29,7 @@ export default function WizardPage() {
     const parts = path.split('.');
     let current: any = newConfig;
     for (let i = 0; i < parts.length - 1; i++) {
+      if (current[parts[i]] === undefined) current[parts[i]] = {};
       current = current[parts[i]];
     }
     current[parts[parts.length - 1]] = value;
@@ -56,6 +58,14 @@ export default function WizardPage() {
     { title: "The Secret", icon: <Lock /> },
     { title: "Share", icon: <Check /> }
   ];
+
+  const getDaysArray = () => {
+    const days = [];
+    for (let i = 0; i < config.totalDays; i++) {
+      days.push(14 - i);
+    }
+    return days.sort((a, b) => a - b);
+  };
 
   return (
     <main className="min-h-screen bg-valentine-cream p-4 md:p-8 flex flex-col items-center">
@@ -101,11 +111,10 @@ export default function WizardPage() {
                     <h3 className="text-xl font-bold text-valentine-red mb-2">Free Plan</h3>
                     <ul className="text-sm text-valentine-soft space-y-2 mb-4">
                       <li className="flex items-center gap-2"><Check size={14} /> Full Dashboard</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Photo Gallery</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> 10 Secret Notes</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> Custom Duration (1-14 days)</li>
                       <li className="flex items-center gap-2"><Check size={14} /> All Spotify Tracks</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Custom Passcode</li>
-                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Personal Video</li>
+                      <li className="flex items-center gap-2"><Check size={14} /> 10 Secret Notes</li>
+                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Custom Secret Cinema</li>
                     </ul>
                     <div className="text-2xl font-bold text-valentine-red">$0</div>
                   </div>
@@ -120,8 +129,7 @@ export default function WizardPage() {
                       <li className="flex items-center gap-3"><Check size={14} /> Everything in Free</li>
                       <li className="flex items-center gap-3"><Check size={14} /> <b>Custom Memory Video</b></li>
                       <li className="flex items-center gap-3"><Check size={14} /> Unlimited Secret Notes</li>
-                      <li className="flex items-center gap-3"><Check size={14} /> No "Valentine Wizard" Branding</li>
-                      <li className="flex items-center gap-3"><Check size={14} /> Priority Support</li>
+                      <li className="flex items-center gap-3"><Check size={14} /> No Branding</li>
                     </ul>
                     <div className="text-2xl font-bold text-valentine-red">$9.99 <span className="text-xs font-normal text-valentine-soft">One-time</span></div>
                   </div>
@@ -152,27 +160,41 @@ export default function WizardPage() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-valentine-soft uppercase">Anniversary Date</label>
-                    <input 
-                      type="date" 
-                      value={config.anniversaryDate.split('T')[0]}
-                      onChange={(e) => updateConfig('anniversaryDate', new Date(e.target.value).toISOString())}
-                      className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-valentine-soft uppercase">Anniversary Date</label>
+                        <input 
+                        type="date" 
+                        value={config.anniversaryDate.split('T')[0]}
+                        onChange={(e) => updateConfig('anniversaryDate', new Date(e.target.value).toISOString())}
+                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-valentine-soft uppercase">Duration (Days)</label>
+                        <input 
+                        type="number" 
+                        min={1}
+                        max={14}
+                        value={config.totalDays}
+                        onChange={(e) => updateConfig('totalDays', parseInt(e.target.value))}
+                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
+                        />
+                        <p className="text-[10px] text-valentine-soft italic">How many days lead up to Feb 14th? (1-14)</p>
+                    </div>
                   </div>
                 </div>
               )}
 
               {step === 3 && (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for the unlockable stages.</p>
-                  {[12, 13, 14].map((day) => (
+                  {getDaysArray().map((day) => (
                     <div key={day} className="space-y-2">
                       <label className="block text-sm font-bold text-valentine-soft uppercase">Feb {day} Track ID</label>
                       <input 
                         type="text" 
-                        value={(config.spotifyTracks as any)[`day${day}`]}
+                        value={config.spotifyTracks[`day${day}`] || ""}
                         onChange={(e) => updateConfig(`spotifyTracks.day${day}`, e.target.value.split('/').pop()?.split('?')[0])}
                         placeholder="Paste Spotify Link or ID"
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
@@ -196,9 +218,9 @@ export default function WizardPage() {
                           }}
                           className="p-2 rounded-lg border-2 border-valentine-pink/20 outline-none"
                         >
-                          <option value={12}>Feb 12</option>
-                          <option value={13}>Feb 13</option>
-                          <option value={14}>Feb 14</option>
+                          {getDaysArray().map(d => (
+                              <option key={d} value={d}>Feb {d}</option>
+                          ))}
                         </select>
                         <input 
                           type="text" 

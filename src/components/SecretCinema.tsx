@@ -18,7 +18,11 @@ const SecretCinema = () => {
 
   useEffect(() => {
     if (config) {
-        setSelectedTrack(config.spotifyTracks.day12);
+        // Default to the first available track
+        const dayKeys = Object.keys(config.spotifyTracks).sort();
+        if (dayKeys.length > 0) {
+            setSelectedTrack(config.spotifyTracks[dayKeys[0]]);
+        }
     }
   }, [config]);
 
@@ -77,12 +81,16 @@ const SecretCinema = () => {
 
   if (!config) return null;
 
-  const tracks = [
-    { id: config.spotifyTracks.day12, title: "Our Beginning" },
-    { id: config.spotifyTracks.day13, title: "Our Journey" },
-    { id: config.spotifyTracks.day14, title: "Today & Always" },
-    ...(config.spotifyTracks.extra || []).map((id, i) => ({ id, title: `Extra Song ${i + 1}` }))
-  ];
+  const getTracks = () => {
+      return Object.entries(config.spotifyTracks)
+        .map(([key, id]) => ({
+            id,
+            title: `Feb ${key.replace('day', '')} Soundtrack`
+        }))
+        .filter(t => !!t.id);
+  };
+
+  const tracks = getTracks();
 
   if (showCinema) {
     return (
@@ -98,7 +106,7 @@ const SecretCinema = () => {
           </div>
           
           <div className="space-y-6">
-            {tracks.filter(t => !!t.id).map((track) => (
+            {tracks.map((track) => (
               <div 
                 key={track.id} 
                 className={`relative transition-all duration-700 cursor-pointer ${selectedTrack === track.id ? 'scale-105 opacity-100' : 'opacity-40 hover:opacity-60'}`}

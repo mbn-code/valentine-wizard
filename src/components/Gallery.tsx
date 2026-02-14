@@ -35,15 +35,23 @@ const Gallery = () => {
 
   if (!config) return null;
 
-  const imagesDay12 = config.galleryImages?.day12 || [];
-  const imagesDay13 = config.galleryImages?.day13 || [];
-  const imagesDay14 = config.galleryImages?.day14 || [];
+  const getAllSections = () => {
+      const sections = [];
+      const totalDays = config.totalDays || 3;
+      for (let i = 0; i < totalDays; i++) {
+          const dayNum = 14 - i;
+          const images = config.galleryImages?.[`day${dayNum}`] || [];
+          sections.push({
+              day: dayNum,
+              images,
+              label: dayNum === 14 ? "The Grand Finale" : `Countdown: Feb ${dayNum}`,
+              folder: `day${dayNum}`
+          });
+      }
+      return sections.sort((a, b) => a.day - b.day);
+  };
 
-  const allSections = [
-    { day: 12, images: imagesDay12, label: "Part 1: The Beginning", folder: "day1" },
-    { day: 13, images: imagesDay13, label: "Part 2: Our Journey", folder: "day2" },
-    { day: 14, images: imagesDay14, label: "Part 3: Today & Forever", folder: "day3" },
-  ];
+  const allSections = getAllSections();
 
   const unlockedImages: { src: string; id: string }[] = allSections.flatMap((section) => 
     isTrackUnlocked(section.day) 
@@ -59,7 +67,8 @@ const Gallery = () => {
     if (index !== -1) setLightboxIndex(index);
   };
 
-  if (unlockedImages.length === 0 && !allSections.some(s => !isTrackUnlocked(s.day))) {
+  // If no images configured at all, don't show the gallery
+  if (!allSections.some(s => s.images.length > 0)) {
       return null;
   }
 
