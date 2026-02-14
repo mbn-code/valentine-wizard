@@ -18,10 +18,10 @@ function WizardContent() {
   const [step, setStep] = useState(success ? 7 : 1);
   const [isPaying, setIsPaying] = useState(false);
   const [config, setConfig] = useState<ValentineConfig>({
-    plan: success ? paidPlan : initialPlan,
+    plan: initialPlan,
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
-    totalDays: (success ? paidPlan : initialPlan) === 'free' ? 1 : 3,
+    totalDays: initialPlan === 'free' ? 1 : 3,
     spotifyTracks: { "day14": "" },
     notes: [
       { id: 'note1', day: 14, content: 'Happy Valentine\'s Day!' }
@@ -32,6 +32,31 @@ function WizardContent() {
 
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Load saved config on success
+  useEffect(() => {
+    if (success) {
+      const saved = localStorage.getItem('pending_valentine_config');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Ensure the plan matches the one paid for
+          parsed.plan = paidPlan || parsed.plan;
+          setConfig(parsed);
+          
+          // Generate the link immediately
+          const encoded = encodeConfig(parsed);
+          const url = `${window.location.origin}/#config=${encoded}`;
+          setGeneratedLink(url);
+          
+          // Clear it so it doesn't linger
+          localStorage.removeItem('pending_valentine_config');
+        } catch (e) {
+          console.error("Failed to parse saved config", e);
+        }
+      }
+    }
+  }, [success, paidPlan]);
 
   // Constraints based on plan
   const PLAN_LIMITS = {
@@ -57,6 +82,9 @@ function WizardContent() {
   const handleGenerate = async () => {
     if (config.plan !== 'free' && !success) {
         setIsPaying(true);
+        // Persist config so it's there when we return
+        localStorage.setItem('pending_valentine_config', JSON.stringify(config));
+        
         try {
             const response = await fetch('/api/checkout', {
                 method: 'POST',
