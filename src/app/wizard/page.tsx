@@ -106,8 +106,8 @@ function WizardContent() {
         const url = await uploadFile(files[0]);
         updateConfig(path, url);
       }
-    } catch (err) {
-      alert("Upload failed. Make sure you have added BLOB_READ_WRITE_TOKEN to your .env.local and restarted the server.");
+    } catch (err: any) {
+      alert(`Upload failed: ${err.message || 'Unknown error'}. Make sure you have added BLOB_READ_WRITE_TOKEN to your .env.local and restarted the server.`);
       console.error(err);
     } finally {
       setUploading(null);
