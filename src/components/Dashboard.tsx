@@ -263,6 +263,10 @@ const Dashboard = () => {
                 Created with <span className="text-valentine-red">Valentine Wizard</span>
                 <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours →</Link>
             </p>
+            <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft mt-1 opacity-50">
+              <Link href="/privacy" className="hover:text-valentine-red">Privacy</Link>
+              <Link href="/terms" className="hover:text-valentine-red">Terms</Link>
+            </div>
         </div>
       )}
     </div>

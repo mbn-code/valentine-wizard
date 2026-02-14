@@ -118,11 +118,15 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="py-12 border-t bg-valentine-cream/50">
-          <div className="max-w-2xl mx-auto space-y-4 px-4">
+        <footer className="py-12 border-t bg-valentine-cream/50 text-gray-800">
+          <div className="max-w-2xl mx-auto space-y-4 px-4 text-center">
             <p className="text-valentine-soft text-sm italic">"I originally built this as a private gift for my girlfriend. After friends asked to use it, I decided to turn it into a wizard for everyone."</p>
             <div className="h-[1px] w-12 bg-valentine-red/20 mx-auto" />
-            <p className="text-valentine-soft text-xs">© 2026 Valentine Wizard • Built with ❤️ in Denmark</p>
+            <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-bold text-valentine-soft">
+              <Link href="/privacy" className="hover:text-valentine-red transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-valentine-red transition-colors">Terms of Service</Link>
+            </div>
+            <p className="text-valentine-soft text-[10px] uppercase tracking-tighter">© 2026 Valentine Wizard • Built with ❤️ in Denmark</p>
           </div>
         </footer>
       </main>

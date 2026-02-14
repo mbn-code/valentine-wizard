@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Heart, Music } from 'lucide-react';
 import { useValentine } from '@/utils/ValentineContext';
+import Link from 'next/link';
 
 interface InvitationProps {
   onComplete: () => void;
@@ -174,8 +175,12 @@ const Invitation = ({ onComplete }: InvitationProps) => {
             </p>
             
             {config?.plan === 'free' && (
-              <div className="pt-12">
+              <div className="pt-12 space-y-2">
                 <p className="text-[10px] text-valentine-soft uppercase tracking-[0.2em] font-bold">Powered by Valentine Wizard</p>
+                <div className="flex justify-center gap-4 text-[8px] uppercase tracking-widest font-bold text-valentine-soft opacity-50">
+                  <Link href="/privacy">Privacy</Link>
+                  <Link href="/terms">Terms</Link>
+                </div>
               </div>
             )}
           </motion.div>
