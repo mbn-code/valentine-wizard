@@ -1,0 +1,79 @@
+"use client";
+
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { ValentineConfig, decodeConfig } from '@/utils/config';
+import { setAnniversaryDate } from '@/utils/date';
+
+interface ValentineContextType {
+  config: ValentineConfig | null;
+  isWizardMode: boolean;
+}
+
+const ValentineContext = createContext<ValentineContextType | undefined>(undefined);
+
+const DEFAULT_CONFIG: ValentineConfig = {
+  names: {
+    partner1: "You",
+    partner2: "Me"
+  },
+  anniversaryDate: "2022-07-28T00:00:00",
+  spotifyTracks: {
+    day12: "4riDfclV7kPDT9D58FpmHd",
+    day13: "0TZOdKFWNYfnwewAP8R4D8",
+    day14: "657CttNzh41EseXiePl3qC",
+    extra: ["4S4QJfBGGrC8jRIjJHf1Ka", "1fRLjwhspxZPVdV5MOpFeg", "7EAMXbLcL0qXmciM5SwMh2"]
+  },
+  notes: [
+    { id: "note1", day: 12, content: "Min lille abe <3" },
+    { id: "note2", day: 12, content: "Biblioteket :)" },
+    { id: "note7", day: 12, hour: 13, content: "Ekstra sang slap af :)", isSpotify: true, spotifyId: "4S4QJfBGGrC8jRIjJHf1Ka" },
+    { id: "note3", day: 13, content: "Ekstra sang :)", isSpotify: true, spotifyId: "1fRLjwhspxZPVdV5MOpFeg" },
+    { id: "note4", day: 13, content: "Tegne på ipad på maccen :)" },
+    { id: "note5", day: 14, content: "https://www.instagram.com/p/DRcVHc8kwUe/" },
+    { id: "note6", day: 14, content: "Bakken :)" },
+    { id: "note8", day: 14, content: "En sidste sang :)", isSpotify: true, spotifyId: "7EAMXbLcL0qXmciM5SwMh2" },
+  ],
+  passcode: "1402",
+  videoUrl: "/assets/videos/joyful_moments.mov"
+};
+
+export function ValentineProvider({ children }: { children: ReactNode }) {
+  const [config, setConfig] = useState<ValentineConfig | null>(null);
+  const [isWizardMode, setIsWizardMode] = useState(false);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#config=')) {
+      const encoded = hash.replace('#config=', '');
+      const decoded = decodeConfig(encoded);
+      if (decoded) {
+        setConfig(decoded);
+        setAnniversaryDate(decoded.anniversaryDate);
+        return;
+      }
+    }
+    
+    if (window.location.pathname === '/wizard') {
+      setIsWizardMode(true);
+    } else if (window.location.pathname === '/' && !hash) {
+      // Keep null to show landing
+    } else {
+        setConfig(DEFAULT_CONFIG);
+        setAnniversaryDate(DEFAULT_CONFIG.anniversaryDate);
+    }
+  }, []);
+
+  return (
+    <ValentineContext.Provider value={{ config, isWizardMode }}>
+      {children}
+    </ValentineContext.Provider>
+  );
+}
+
+export function useValentine() {
+  const context = useContext(ValentineContext);
+  if (context === undefined) {
+    throw new Error('useValentine must be used within a ValentineProvider');
+  }
+  return context;
+}
