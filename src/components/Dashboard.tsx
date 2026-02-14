@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTimeTogether, isTrackUnlocked, getTimeUntil } from '@/utils/date';
-import { Heart, Music, Clock, RefreshCw, Bell, Download, X, Lock, Sparkles } from 'lucide-react';
+import { Heart, Music, Clock, Bell, Download, X, Lock, Sparkles } from 'lucide-react';
 import Gallery from './Gallery';
 import SecretCinema from './SecretCinema';
 import Ambiance from './Ambiance';
@@ -95,41 +95,16 @@ const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: numbe
 const Dashboard = () => {
   const { config } = useValentine();
   const [time, setTime] = useState(getTimeTogether());
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [tapCount, setTapCount] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(getTimeTogether());
     }, 1000);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key === 'R') {
-        setShowAdmin(prev => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
       clearInterval(timer);
-      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  const handleTitleTap = () => {
-    const newCount = tapCount + 1;
-    setTapCount(newCount);
-    if (newCount >= 5) {
-      setShowAdmin(true);
-      setTapCount(0);
-    }
-    setTimeout(() => setTapCount(0), 3000);
-  };
-
-  const handleReset = () => {
-    localStorage.clear();
-    window.location.reload();
-  };
 
   const LockedState = ({ day, hour = 0 }: { day: number, hour?: number }) => {
     return (
@@ -178,8 +153,7 @@ const Dashboard = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            onClick={handleTitleTap}
-            className="text-4xl md:text-6xl font-bold text-valentine-red cursor-pointer select-none font-sacramento"
+            className="text-4xl md:text-6xl font-bold text-valentine-red select-none font-sacramento"
           >
             Our Sanctuary
           </motion.h1>
@@ -289,21 +263,6 @@ const Dashboard = () => {
                 Created with <span className="text-valentine-red">Valentine Wizard</span>
                 <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours →</Link>
             </p>
-        </div>
-      )}
-
-      {showAdmin && (
-        <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-8">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-valentine-red mb-6">Admin Panel</h2>
-            <button 
-              onClick={handleReset}
-              className="w-full py-4 border-2 border-valentine-red text-valentine-red rounded-xl font-bold hover:bg-valentine-red hover:text-white transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={20} /> Reset All Data
-            </button>
-            <button onClick={() => setShowAdmin(false)} className="mt-4 w-full text-valentine-soft font-bold">Close</button>
-          </div>
         </div>
       )}
     </div>
