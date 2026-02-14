@@ -81,10 +81,11 @@ function WizardContent() {
     }
   }, [success, sessionId, paidPlan]);
 
+  // Constraints based on plan
   const PLAN_LIMITS = {
-    free: { days: 1, notes: 3, gallery: false, video: false, branding: true, background: false },
-    plus: { days: 7, notes: 10, gallery: true, video: false, branding: false, background: true },
-    infinite: { days: 14, notes: 100, gallery: true, video: true, branding: false, background: true }
+    free: { days: 1, notes: 5, gallery: 3, video: false, branding: true, background: false },
+    plus: { days: 7, notes: 15, gallery: 100, video: false, branding: false, background: true },
+    infinite: { days: 14, notes: 500, gallery: 500, video: true, branding: false, background: true }
   };
 
   const currentLimits = PLAN_LIMITS[config.plan];
@@ -307,9 +308,9 @@ function WizardContent() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         {[
-                            { id: 'free', name: 'Spark', price: '$0', desc: '1 Day Surprise' },
-                            { id: 'plus', name: 'Romance', price: '$4.99', desc: '7 Day Story' },
-                            { id: 'infinite', name: 'Sanctuary', price: '$9.99', desc: '14 Day Journey' }
+                            { id: 'free', name: 'Spark', price: '$0', desc: 'The Sweet Teaser' },
+                            { id: 'plus', name: 'Romance', price: '$4.99', desc: 'A Week of Love' },
+                            { id: 'infinite', name: 'Sanctuary', price: '$9.99', desc: 'The Full Journey' }
                         ].map((p) => (
                             <div 
                                 key={p.id}
@@ -326,32 +327,25 @@ function WizardContent() {
                         <ul className="text-xs text-valentine-soft space-y-2">
                             <li className="flex items-center gap-2">
                                 <Check size={14} className="text-green-500" /> 
-                                {config.plan === 'free' ? '3 Notes' : config.plan === 'plus' ? '10 Notes' : 'Unlimited Notes'}
+                                {config.plan === 'free' ? '5 Secret Notes' : config.plan === 'plus' ? '15 Secret Notes' : 'Unlimited Notes'}
                             </li>
                             <li className="flex items-center gap-2">
                                 <Check size={14} className="text-green-500" /> 
-                                {config.plan === 'free' ? '1 Day' : config.plan === 'plus' ? '7 Days' : '14 Days'}
+                                {config.plan === 'free' ? '1 Day Countdown' : config.plan === 'plus' ? '7 Day Countdown' : '14 Day Journey'}
                             </li>
                             <li className="flex items-center gap-2">
-                                {currentLimits.gallery ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
-                                Photo Gallery (Local Upload)
+                                <Check size={14} className="text-green-500" /> 
+                                {config.plan === 'free' ? '3 Photo Uploads' : 'Unlimited Photo Uploads'}
                             </li>
                             <li className="flex items-center gap-2">
                                 {currentLimits.video ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
-                                Custom Video Player
-                            </li>
-                            <li className="flex items-center gap-2">
-                                {currentLimits.background ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
-                                Custom Background Image
-                            </li>
-                            <li className="flex items-center gap-2">
-                                {!currentLimits.branding ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
-                                Remove "Valentine Wizard" Branding
+                                Custom Secret Video
                             </li>
                         </ul>
                     </div>
                 </div>
               )}
+
 
               {step === 2 && (
                 <div className="space-y-4">
