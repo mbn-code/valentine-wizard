@@ -14,14 +14,16 @@ function WizardContent() {
   
   const initialPlan = (searchParams.get('plan') as 'free' | 'plus' | 'infinite') || 'free';
   const success = searchParams.get('success') === 'true';
+  const sessionId = searchParams.get('session_id');
   const paidPlan = searchParams.get('paid_plan') as 'plus' | 'infinite';
 
   const [step, setStep] = useState(success ? 8 : 1);
   const [isPaying, setIsPaying] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(success && !!sessionId);
   const [uploading, setUploading] = useState<string | null>(null); // tracks which field is uploading
   
   const [config, setConfig] = useState<ValentineConfig>({
-    plan: success ? paidPlan : initialPlan,
+    plan: success ? (paidPlan || initialPlan) : initialPlan,
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
     totalDays: (success ? paidPlan : initialPlan) === 'free' ? 1 : 3,
@@ -37,27 +39,39 @@ function WizardContent() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // Load saved config on success
+  // Secure Session Verification
   useEffect(() => {
-    if (success) {
-      const saved = localStorage.getItem('pending_valentine_config');
-      if (saved) {
+    if (success && sessionId) {
+      const verify = async () => {
         try {
-          const parsed = JSON.parse(saved);
-          parsed.plan = paidPlan || parsed.plan;
-          setConfig(parsed);
+          const res = await fetch(`/api/verify-session?session_id=${sessionId}`);
+          const data = await res.json();
           
-          const encoded = encodeConfig(parsed);
-          const url = `${window.location.origin}/#config=${encoded}`;
-          setGeneratedLink(url);
-          
-          localStorage.removeItem('pending_valentine_config');
+          if (data.success) {
+            const saved = localStorage.getItem('pending_valentine_config');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              parsed.plan = paidPlan || parsed.plan;
+              setConfig(parsed);
+              
+              const encoded = encodeConfig(parsed);
+              const url = `${window.location.origin}/#config=${encoded}`;
+              setGeneratedLink(url);
+              localStorage.removeItem('pending_valentine_config');
+            }
+          } else {
+            alert("Payment verification failed. Please contact support.");
+            setStep(1);
+          }
         } catch (e) {
-          console.error("Failed to parse saved config", e);
+          console.error("Verification error", e);
+        } finally {
+          setIsVerifying(false);
         }
-      }
+      };
+      verify();
     }
-  }, [success, paidPlan]);
+  }, [success, sessionId, paidPlan]);
 
   const PLAN_LIMITS = {
     free: { days: 1, notes: 3, gallery: false, video: false, branding: true, background: false },
@@ -80,7 +94,6 @@ function WizardContent() {
   };
 
   const uploadFile = async (file: File) => {
-    // This calls our /api/upload to get a client token then uploads directly to Vercel
     const newBlob = await upload(file.name, file, {
       access: 'public',
       handleUploadUrl: '/api/upload',
@@ -107,12 +120,8 @@ function WizardContent() {
         updateConfig(path, url);
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Unknown error';
-      if (errorMessage.includes('already exists')) {
-        alert("This file was already uploaded. Try renaming it or selecting a different one.");
-      } else {
-        alert(`Upload failed: ${errorMessage}. If you're the developer, check your BLOB_READ_WRITE_TOKEN.`);
-      }
+      const msg = err.message || 'Unknown error';
+      alert(`Upload failed: ${msg}. If testing locally, check your BLOB_READ_WRITE_TOKEN in .env.local.`);
       console.error(err);
     } finally {
       setUploading(null);
@@ -195,6 +204,18 @@ function WizardContent() {
     </div>
   );
 
+  if (isVerifying) {
+      return (
+        <main className="min-h-screen bg-valentine-cream flex flex-col items-center justify-center p-8 text-center">
+            <div className="space-y-6">
+                <Loader2 className="w-16 h-16 text-valentine-red animate-spin mx-auto" />
+                <h2 className="text-2xl font-bold text-valentine-red font-sacramento text-4xl">Verifying your romance...</h2>
+                <p className="text-valentine-soft italic">Securing your sanctuary, just a moment.</p>
+            </div>
+        </main>
+      );
+  }
+
   return (
     <main className="min-h-screen bg-valentine-cream p-4 md:p-8 flex flex-col items-center text-gray-800">
       <div className="max-w-3xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[650px]">
@@ -236,12 +257,12 @@ function WizardContent() {
               className="space-y-6"
             >
               {step === 1 && (
-                <div className="space-y-6">
+                <div className="space-y-6 text-center">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-valentine-red">Choose your experience</h2>
                         <p className="text-valentine-soft text-sm mt-1">Pick the tier that fits your story.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         {[
                             { id: 'free', name: 'Spark', price: '$0', desc: '1 Day Surprise' },
                             { id: 'plus', name: 'Romance', price: '$4.99', desc: '7 Day Story' },
@@ -258,7 +279,7 @@ function WizardContent() {
                             </div>
                         ))}
                     </div>
-                    <div className="bg-valentine-cream/50 p-4 rounded-2xl">
+                    <div className="bg-valentine-cream/50 p-4 rounded-2xl text-left">
                         <ul className="text-xs text-valentine-soft space-y-2">
                             <li className="flex items-center gap-2">
                                 <Check size={14} className="text-green-500" /> 
@@ -284,7 +305,7 @@ function WizardContent() {
               {step === 2 && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <label className="block text-sm font-bold text-valentine-soft uppercase">Your Name</label>
                       <input 
                         type="text" 
@@ -294,7 +315,7 @@ function WizardContent() {
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <label className="block text-sm font-bold text-valentine-soft uppercase">Their Name</label>
                       <input 
                         type="text" 
@@ -306,7 +327,7 @@ function WizardContent() {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                         <label className="block text-sm font-bold text-valentine-soft uppercase">Anniversary Date</label>
                         <input 
                         type="date" 
@@ -315,7 +336,7 @@ function WizardContent() {
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                         />
                     </div>
-                    <div className="space-y-2 relative">
+                    <div className="space-y-2 relative text-left">
                         <label className="block text-sm font-bold text-valentine-soft uppercase">Duration (Days)</label>
                         <input 
                         type="number" 
@@ -485,7 +506,7 @@ function WizardContent() {
 
               {step === 5 && (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar text-left">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-left">
                     <p className="text-sm text-valentine-soft">Write messages that unlock at specific times.</p>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded ${config.notes.length >= currentLimits.notes ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                         {config.notes.length} / {currentLimits.notes === 100 ? '∞' : currentLimits.notes} Used
