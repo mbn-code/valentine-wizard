@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTimeTogether, isTrackUnlocked, getTimeUntil } from '@/utils/date';
-import { Heart, Music, Clock, RefreshCw, Bell, Download, X, Lock } from 'lucide-react';
+import { Heart, Music, Clock, RefreshCw, Bell, Download, X, Lock, Sparkles } from 'lucide-react';
 import Gallery from './Gallery';
 import SecretCinema from './SecretCinema';
 import Ambiance from './Ambiance';
@@ -152,7 +152,7 @@ const Dashboard = () => {
       items.push({
         day: dayNum,
         id: trackId,
-        title: dayNum === 14 ? 'Feb 14: Valentine\'s Day' : `Feb ${dayNum}: The Countdown`
+        title: dayNum === 14 ? 'Feb 14: The Finale' : `Feb ${dayNum}: The Countdown`
       });
     }
     return items.sort((a, b) => a.day - b.day);
@@ -259,15 +259,26 @@ const Dashboard = () => {
           </div>
         </section>
 
-        <Gallery />
+        {config.plan !== 'free' ? (
+            <Gallery />
+        ) : (
+            <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
+                <h3 className="text-xl font-bold text-valentine-red mb-2">Unlock the Photo Gallery?</h3>
+                <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to share your favorite memories!</p>
+                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block text-sm">View Plans</Link>
+            </div>
+        )}
+
         <SecretCinema />
       </div>
 
+      {/* Free Plan Footer / Watermark */}
       {config.plan === 'free' && (
         <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50">
-            <p className="text-xs text-valentine-soft font-medium flex items-center justify-center gap-2">
-                Created with <span className="font-bold text-valentine-red uppercase tracking-tighter">Valentine Wizard</span>
-                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours free →</Link>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-valentine-soft font-bold flex items-center justify-center gap-2">
+                Created with <span className="text-valentine-red">Valentine Wizard</span>
+                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Make yours →</Link>
             </p>
         </div>
       )}

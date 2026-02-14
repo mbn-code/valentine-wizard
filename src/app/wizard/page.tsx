@@ -1,18 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star } from 'lucide-react';
+import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2 } from 'lucide-react';
 import { ValentineConfig, encodeConfig } from '@/utils/config';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function WizardPage() {
-  const [step, setStep] = useState(1);
+function WizardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const initialPlan = (searchParams.get('plan') as 'free' | 'plus' | 'infinite') || 'free';
+  const success = searchParams.get('success') === 'true';
+  const paidPlan = searchParams.get('paid_plan') as 'plus' | 'infinite';
+
+  const [step, setStep] = useState(success ? 7 : 1);
+  const [isPaying, setIsPaying] = useState(false);
   const [config, setConfig] = useState<ValentineConfig>({
-    plan: 'free',
+    plan: success ? paidPlan : initialPlan,
     names: { partner1: '', partner2: '' },
     anniversaryDate: new Date().toISOString().split('T')[0],
-    totalDays: 3,
+    totalDays: (success ? paidPlan : initialPlan) === 'free' ? 1 : 3,
     spotifyTracks: { "day14": "" },
     notes: [
       { id: 'note1', day: 14, content: 'Happy Valentine\'s Day!' }
@@ -23,6 +32,15 @@ export default function WizardPage() {
 
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Constraints based on plan
+  const PLAN_LIMITS = {
+    free: { days: 1, notes: 3, gallery: false, video: false, branding: true },
+    plus: { days: 7, notes: 10, gallery: true, video: false, branding: false },
+    infinite: { days: 14, notes: 100, gallery: true, video: true, branding: false }
+  };
+
+  const currentLimits = PLAN_LIMITS[config.plan];
 
   const updateConfig = (path: string, value: any) => {
     const newConfig = { ...config };
@@ -36,7 +54,29 @@ export default function WizardPage() {
     setConfig(newConfig);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (config.plan !== 'free' && !success) {
+        setIsPaying(true);
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: config.plan, config })
+            });
+            const data = await response.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert("Checkout error. Try again.");
+                setIsPaying(false);
+            }
+        } catch (e) {
+            console.error(e);
+            setIsPaying(false);
+        }
+        return;
+    }
+
     const encoded = encodeConfig(config);
     const url = `${window.location.origin}/#config=${encoded}`;
     setGeneratedLink(url);
@@ -67,14 +107,39 @@ export default function WizardPage() {
     return days.sort((a, b) => a - b);
   };
 
+  const UpgradeNudge = ({ target }: { target: 'plus' | 'infinite' }) => (
+    <div className="p-4 bg-valentine-red/5 rounded-2xl border border-valentine-red/20 flex items-start gap-3 mt-4 animate-in fade-in slide-in-from-top-2">
+        <Sparkles className="text-valentine-red shrink-0" size={20} />
+        <div>
+            <p className="text-xs font-bold text-valentine-red uppercase tracking-wider mb-1">Upgrade Available</p>
+            <p className="text-[11px] text-valentine-soft mb-2">
+                {target === 'plus' 
+                    ? "Get up to 7 days, 10 notes, and a personal photo gallery with 'The Romance' plan."
+                    : "Unlock the Secret Cinema (Video), custom passcodes, and 14-day countdowns with 'The Sanctuary'."}
+            </p>
+            <button 
+                onClick={() => setStep(1)}
+                className="text-[10px] bg-valentine-red text-white px-3 py-1 rounded-full font-bold uppercase"
+            >
+                View Plans
+            </button>
+        </div>
+    </div>
+  );
+
   return (
     <main className="min-h-screen bg-valentine-cream p-4 md:p-8 flex flex-col items-center">
-      <div className="max-w-3xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[600px]">
+      <div className="max-w-3xl w-full bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[650px]">
         {/* Header */}
         <div className="bg-valentine-red p-6 text-white flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Valentine Wizard</h1>
-            <p className="text-valentine-pink/80 text-sm">Step {step} of 7: {steps[step-1].title}</p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg">
+                {steps[step-1].icon}
+            </div>
+            <div>
+                <h1 className="text-xl font-bold">Valentine Wizard</h1>
+                <p className="text-valentine-pink/80 text-[10px] uppercase font-bold tracking-widest">{config.plan} Plan • Step {step} of 7</p>
+            </div>
           </div>
           <Link href="/" className="hover:bg-white/10 p-2 rounded-full transition-colors">
             <X size={24} />
@@ -93,7 +158,7 @@ export default function WizardPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-grow p-8">
+        <div className="flex-grow p-8 overflow-y-auto custom-scrollbar">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -103,36 +168,48 @@ export default function WizardPage() {
               className="space-y-6"
             >
               {step === 1 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div 
-                    onClick={() => updateConfig('plan', 'free')}
-                    className={`p-6 rounded-2xl border-4 cursor-pointer transition-all ${config.plan === 'free' ? 'border-valentine-red bg-valentine-red/5 shadow-inner' : 'border-valentine-pink/20 hover:border-valentine-pink'}`}
-                  >
-                    <h3 className="text-xl font-bold text-valentine-red mb-2">Free Plan</h3>
-                    <ul className="text-sm text-valentine-soft space-y-2 mb-4">
-                      <li className="flex items-center gap-2"><Check size={14} /> Full Dashboard</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> Custom Duration (1-14 days)</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> All Spotify Tracks</li>
-                      <li className="flex items-center gap-2"><Check size={14} /> 10 Secret Notes</li>
-                      <li className="flex items-center gap-2 text-valentine-soft/50"><X size={14} /> Custom Secret Cinema</li>
-                    </ul>
-                    <div className="text-2xl font-bold text-valentine-red">$0</div>
-                  </div>
-
-                  <div 
-                    onClick={() => updateConfig('plan', 'pro')}
-                    className={`p-6 rounded-2xl border-4 cursor-pointer transition-all relative overflow-hidden ${config.plan === 'pro' ? 'border-valentine-red bg-valentine-red/5 shadow-inner' : 'border-valentine-pink/20 hover:border-valentine-pink'}`}
-                  >
-                    <div className="absolute top-0 right-0 bg-valentine-red text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-widest">Premium</div>
-                    <h3 className="text-xl font-bold text-valentine-red mb-2 flex items-center gap-2">Pro Plan <Sparkles size={18} className="text-yellow-500 fill-yellow-500" /></h3>
-                    <ul className="text-sm text-valentine-soft space-y-2 mb-4">
-                      <li className="flex items-center gap-3"><Check size={14} /> Everything in Free</li>
-                      <li className="flex items-center gap-3"><Check size={14} /> <b>Custom Memory Video</b></li>
-                      <li className="flex items-center gap-3"><Check size={14} /> Unlimited Secret Notes</li>
-                      <li className="flex items-center gap-3"><Check size={14} /> No Branding</li>
-                    </ul>
-                    <div className="text-2xl font-bold text-valentine-red">$9.99 <span className="text-xs font-normal text-valentine-soft">One-time</span></div>
-                  </div>
+                <div className="space-y-6">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-valentine-red">Choose your experience</h2>
+                        <p className="text-valentine-soft text-sm mt-1">Pick the tier that fits your story.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                            { id: 'free', name: 'Spark', price: '$0', desc: '1 Day Surprise' },
+                            { id: 'plus', name: 'Romance', price: '$4.99', desc: '7 Day Story' },
+                            { id: 'infinite', name: 'Sanctuary', price: '$9.99', desc: '14 Day Journey' }
+                        ].map((p) => (
+                            <div 
+                                key={p.id}
+                                onClick={() => updateConfig('plan', p.id)}
+                                className={`p-4 rounded-2xl border-4 cursor-pointer transition-all flex flex-col text-center ${config.plan === p.id ? 'border-valentine-red bg-valentine-red/5' : 'border-valentine-pink/10 hover:border-valentine-pink/30'}`}
+                            >
+                                <p className="text-[10px] font-bold text-valentine-soft uppercase tracking-tighter mb-1">{p.name}</p>
+                                <p className="text-xl font-bold text-valentine-red">{p.price}</p>
+                                <p className="text-[10px] text-valentine-soft mt-2">{p.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="bg-valentine-cream/50 p-4 rounded-2xl">
+                        <ul className="text-xs text-valentine-soft space-y-2">
+                            <li className="flex items-center gap-2">
+                                <Check size={14} className="text-green-500" /> 
+                                {config.plan === 'free' ? '3 Notes' : config.plan === 'plus' ? '10 Notes' : 'Unlimited Notes'}
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Check size={14} className="text-green-500" /> 
+                                {config.plan === 'free' ? '1 Day' : config.plan === 'plus' ? '7 Days' : '14 Days'}
+                            </li>
+                            <li className="flex items-center gap-2">
+                                {currentLimits.gallery ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
+                                Photo Gallery
+                            </li>
+                            <li className="flex items-center gap-2">
+                                {currentLimits.video ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-valentine-pink" />}
+                                Custom Video Player
+                            </li>
+                        </ul>
+                    </div>
                 </div>
               )}
 
@@ -170,44 +247,61 @@ export default function WizardPage() {
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                         <label className="block text-sm font-bold text-valentine-soft uppercase">Duration (Days)</label>
                         <input 
                         type="number" 
                         min={1}
-                        max={14}
+                        max={currentLimits.days}
                         value={config.totalDays}
-                        onChange={(e) => updateConfig('totalDays', parseInt(e.target.value))}
+                        onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (val <= currentLimits.days) {
+                                updateConfig('totalDays', val);
+                            }
+                        }}
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                         />
-                        <p className="text-[10px] text-valentine-soft italic">How many days lead up to Feb 14th? (1-14)</p>
+                        <p className="text-[10px] text-valentine-soft italic">Plan max: {currentLimits.days} days.</p>
+                        {config.totalDays >= currentLimits.days && config.plan !== 'infinite' && (
+                            <UpgradeNudge target={config.plan === 'free' ? 'plus' : 'infinite'} />
+                        )}
                     </div>
                   </div>
                 </div>
               )}
 
               {step === 3 && (
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                  <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for the unlockable stages.</p>
-                  {getDaysArray().map((day) => (
-                    <div key={day} className="space-y-2">
-                      <label className="block text-sm font-bold text-valentine-soft uppercase">Feb {day} Track ID</label>
-                      <input 
-                        type="text" 
-                        value={config.spotifyTracks[`day${day}`] || ""}
-                        onChange={(e) => updateConfig(`spotifyTracks.day${day}`, e.target.value.split('/').pop()?.split('?')[0])}
-                        placeholder="Paste Spotify Link or ID"
-                        className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
-                      />
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage of the countdown.</p>
+                  <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                    {getDaysArray().map((day) => (
+                        <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl">
+                        <label className="block text-[10px] font-bold text-valentine-soft uppercase">Feb {day} Track</label>
+                        <input 
+                            type="text" 
+                            value={config.spotifyTracks[`day${day}`] || ""}
+                            onChange={(e) => updateConfig(`spotifyTracks.day${day}`, e.target.value.split('/').pop()?.split('?')[0])}
+                            placeholder="Paste Spotify Link or ID"
+                            className="w-full p-3 rounded-lg border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors text-sm"
+                        />
+                        </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {step === 4 && (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-valentine-soft">Write messages that unlock at specific times.</p>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${config.notes.length >= currentLimits.notes ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                        {config.notes.length} / {currentLimits.notes === 100 ? '∞' : currentLimits.notes} Used
+                    </span>
+                  </div>
+                  
                   {config.notes.map((note, idx) => (
-                    <div key={note.id} className="p-4 bg-valentine-cream/50 rounded-2xl space-y-3 relative group">
+                    <div key={note.id} className="p-4 bg-valentine-cream/50 rounded-2xl space-y-3 relative group border border-valentine-pink/10">
                       <div className="flex gap-4">
                         <select 
                           value={note.day}
@@ -216,7 +310,7 @@ export default function WizardPage() {
                             newNotes[idx].day = parseInt(e.target.value);
                             updateConfig('notes', newNotes);
                           }}
-                          className="p-2 rounded-lg border-2 border-valentine-pink/20 outline-none"
+                          className="p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-xs"
                         >
                           {getDaysArray().map(d => (
                               <option key={d} value={d}>Feb {d}</option>
@@ -230,8 +324,8 @@ export default function WizardPage() {
                             newNotes[idx].content = e.target.value;
                             updateConfig('notes', newNotes);
                           }}
-                          placeholder="Note content..."
-                          className="flex-grow p-2 rounded-lg border-2 border-valentine-pink/20 outline-none"
+                          placeholder="My message..."
+                          className="flex-grow p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-sm"
                         />
                       </div>
                       {config.notes.length > 1 && (
@@ -247,30 +341,31 @@ export default function WizardPage() {
                       )}
                     </div>
                   ))}
-                  <button 
-                    onClick={() => {
-                        if (config.plan === 'free' && config.notes.length >= 10) {
-                            alert("Free plan is limited to 10 notes. Upgrade to Pro for unlimited!");
-                            return;
-                        }
-                        const newNotes = [...config.notes, { id: `note${Date.now()}`, day: 14, content: '' }];
-                        updateConfig('notes', newNotes);
-                    }}
-                    className="w-full py-3 border-2 border-dashed border-valentine-red text-valentine-red rounded-2xl font-bold hover:bg-valentine-red/5 transition-colors"
-                  >
-                    + Add Another Note {config.plan === 'free' && `(${config.notes.length}/10)`}
-                  </button>
+                  
+                  {config.notes.length < currentLimits.notes ? (
+                    <button 
+                        onClick={() => {
+                            const newNotes = [...config.notes, { id: `note${Date.now()}`, day: 14, content: '' }];
+                            updateConfig('notes', newNotes);
+                        }}
+                        className="w-full py-3 border-2 border-dashed border-valentine-red text-valentine-red rounded-2xl font-bold hover:bg-valentine-red/5 transition-colors text-sm"
+                    >
+                        + Add Another Note
+                    </button>
+                  ) : (
+                    <UpgradeNudge target={config.plan === 'free' ? 'plus' : 'infinite'} />
+                  )}
                 </div>
               )}
 
               {step === 5 && (
                 <div className="space-y-4">
-                  {config.plan === 'free' ? (
+                  {!currentLimits.video ? (
                     <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
                       <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
-                      <h3 className="text-xl font-bold text-valentine-red mb-2">Custom Video is Pro Only</h3>
-                      <p className="text-sm text-valentine-soft mb-6">Upgrade to Pro to include your own personal memory video. Free users get a beautiful default movie!</p>
-                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">Upgrade to Pro</button>
+                      <h3 className="text-xl font-bold text-valentine-red mb-2">Custom Video is Premium</h3>
+                      <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Sanctuary</b> plan to upload your own memory movie.</p>
+                      <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -282,7 +377,7 @@ export default function WizardPage() {
                         placeholder="Direct link to .mp4 or .mov"
                         className="w-full p-4 rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
                       />
-                      <p className="text-xs text-valentine-soft">Direct link to a hosted video file (e.g. Dropbox, Cloudinary, etc).</p>
+                      <p className="text-xs text-valentine-soft">Link to a hosted video file (Dropbox, Cloudinary, etc).</p>
                     </div>
                   )}
                 </div>
@@ -298,10 +393,17 @@ export default function WizardPage() {
                       type="text" 
                       maxLength={4}
                       value={config.passcode}
-                      onChange={(e) => updateConfig('passcode', e.target.value.replace(/\D/g, ''))}
-                      className="w-full p-4 text-center text-4xl tracking-widest font-bold rounded-xl border-2 border-valentine-pink/20 focus:border-valentine-red outline-none transition-colors"
+                      onChange={(e) => {
+                          if (config.plan === 'infinite') {
+                            updateConfig('passcode', e.target.value.replace(/\D/g, ''));
+                          }
+                      }}
+                      className={`w-full p-4 text-center text-4xl tracking-widest font-bold rounded-xl border-2 transition-all outline-none ${config.plan !== 'infinite' ? 'bg-valentine-cream/50 text-valentine-soft/50 cursor-not-allowed border-valentine-pink/10' : 'border-valentine-pink/20 focus:border-valentine-red'}`}
                     />
-                    <p className="text-xs text-valentine-soft text-center">Enter a 4-digit code they'll need to unlock the Secret Cinema.</p>
+                    <p className="text-xs text-valentine-soft text-center">
+                        {config.plan === 'infinite' ? 'Enter a 4-digit code.' : 'Default code is 1402 for your plan.'}
+                    </p>
+                    {config.plan !== 'infinite' && <UpgradeNudge target="infinite" />}
                   </div>
                 </div>
               )}
@@ -312,12 +414,12 @@ export default function WizardPage() {
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check size={40} />
                     </div>
-                    <h2 className="text-3xl font-bold text-valentine-red">It's Ready!</h2>
-                    <p className="text-valentine-soft">Your personalized Valentine sanctuary is generated.</p>
+                    <h2 className="text-3xl font-bold text-valentine-red">Your Sanctuary is Ready</h2>
+                    <p className="text-valentine-soft text-sm">Everything is packaged and ready to send.</p>
                   </div>
 
                   <div className="space-y-4">
-                    <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-sm font-mono text-left">
+                    <div className="p-4 bg-valentine-cream rounded-xl border-2 border-valentine-pink/20 break-all text-xs font-mono text-left">
                       {generatedLink}
                     </div>
                     <div className="flex gap-4">
@@ -331,7 +433,7 @@ export default function WizardPage() {
                       <a 
                         href={generatedLink}
                         target="_blank"
-                        className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-valentine-red text-valentine-red rounded-xl font-bold hover:bg-valentine-red/5 transition-all"
+                        className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-valentine-red text-valentine-red rounded-xl font-bold hover:bg-valentine-red/5 transition-all text-sm"
                       >
                         Preview
                       </a>
@@ -345,28 +447,30 @@ export default function WizardPage() {
 
         {/* Footer */}
         {step < 7 && (
-          <div className="p-6 bg-valentine-cream/30 border-t flex justify-between">
+          <div className="p-6 bg-valentine-cream/30 border-t flex justify-between items-center">
             <button 
               onClick={() => setStep(Math.max(1, step - 1))}
-              disabled={step === 1}
-              className={`flex items-center gap-2 font-bold transition-colors ${step === 1 ? 'text-valentine-soft/50 cursor-not-allowed' : 'text-valentine-soft hover:text-valentine-red'}`}
+              disabled={step === 1 || isPaying}
+              className={`flex items-center gap-2 font-bold text-sm transition-colors ${step === 1 ? 'text-valentine-soft/50 cursor-not-allowed' : 'text-valentine-soft hover:text-valentine-red'}`}
             >
-              <ArrowLeft size={20} /> Previous
+              <ArrowLeft size={18} /> Previous
             </button>
             
             {step < 6 ? (
               <button 
                 onClick={() => setStep(step + 1)}
-                className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all"
+                className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-sm"
               >
-                Next Step <ArrowRight size={20} />
+                Next Step <ArrowRight size={18} />
               </button>
             ) : (
               <button 
                 onClick={handleGenerate}
-                className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all"
+                disabled={isPaying}
+                className="flex items-center gap-2 bg-valentine-red text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-all text-sm disabled:opacity-50"
               >
-                <Save size={20} /> Generate Sanctuary
+                {isPaying ? <Loader2 className="animate-spin" size={18} /> : (config.plan === 'free' || success ? <Save size={18} /> : <Star size={18} />)}
+                {isPaying ? 'Processing...' : (config.plan === 'free' || success ? 'Finish Sanctuary' : `Upgrade & Finish`)}
               </button>
             )}
           </div>
@@ -374,4 +478,12 @@ export default function WizardPage() {
       </div>
     </main>
   );
+}
+
+export default function WizardPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-valentine-cream flex items-center justify-center"><Heart className="text-valentine-red animate-pulse" size={48} /></div>}>
+            <WizardContent />
+        </Suspense>
+    );
 }

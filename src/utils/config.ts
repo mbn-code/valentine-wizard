@@ -1,7 +1,7 @@
 import LZString from 'lz-string';
 
 export interface ValentineConfig {
-  plan: 'free' | 'pro';
+  plan: 'free' | 'plus' | 'infinite';
   names: {
     partner1: string;
     partner2: string;

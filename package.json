@@ -23,6 +23,7 @@
     }
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.7.0",
     "autoprefixer": "^10.4.24",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
@@ -33,6 +34,7 @@
     "next": "15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^20.3.1",
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {

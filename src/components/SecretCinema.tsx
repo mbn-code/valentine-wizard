@@ -18,7 +18,6 @@ const SecretCinema = () => {
 
   useEffect(() => {
     if (config) {
-        // Default to the first available track
         const dayKeys = Object.keys(config.spotifyTracks).sort();
         if (dayKeys.length > 0) {
             setSelectedTrack(config.spotifyTracks[dayKeys[0]]);
@@ -99,10 +98,10 @@ const SecretCinema = () => {
         animate={{ opacity: 1 }}
         className="fixed inset-0 z-[500] bg-black flex flex-col md:flex-row overflow-hidden"
       >
-        <div className="w-full md:w-[400px] h-1/3 md:h-full bg-zinc-950/20 backdrop-blur-3xl border-r border-white/5 flex flex-col p-6 md:p-12 shrink-0 overflow-y-auto custom-scrollbar z-10">
+        <div className="w-full md:w-[400px] h-1/3 md:h-full bg-zinc-950/20 backdrop-blur-3xl border-r border-white/5 flex flex-col p-6 md:p-12 shrink-0 overflow-y-auto custom-scrollbar z-10 text-white/80">
           <div className="flex items-center gap-3 text-valentine-red mb-8 px-2 shrink-0">
             <Music size={28} className="animate-pulse" />
-            <h3 className="font-bold text-sm tracking-widest uppercase opacity-60 text-white/80">Soundtrack</h3>
+            <h3 className="font-bold text-xs tracking-widest uppercase opacity-60">Soundtrack</h3>
           </div>
           
           <div className="space-y-6">
@@ -136,7 +135,7 @@ const SecretCinema = () => {
 
           <div className="h-[70vh] aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-zinc-800 relative">
             <video 
-              src={(config.plan === 'pro' && config.videoUrl) ? config.videoUrl : DEFAULT_VIDEO} 
+              src={(config.plan === 'infinite' && config.videoUrl) ? config.videoUrl : DEFAULT_VIDEO} 
               controls 
               autoPlay 
               muted
@@ -146,7 +145,7 @@ const SecretCinema = () => {
           </div>
           
           <h2 className="mt-8 text-4xl font-bold text-valentine-red font-sacramento text-center">
-            {config.plan === 'pro' ? 'Our Joyful Moments' : 'A Special Delivery'}
+            {config.plan === 'infinite' ? 'Our Joyful Moments' : 'A Special Delivery'}
           </h2>
         </div>
       </motion.div>
