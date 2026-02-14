@@ -42,11 +42,16 @@ function WizardContent() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [configLength, setConfigLength] = useState(0);
+  const [totalNotesLength, setTotalNotesLength] = useState(0);
 
   // Monitor config size for URL limits
   useEffect(() => {
     const encoded = encodeConfig(config); // Note: this uses legacy for length estimation
     setConfigLength(encoded.length);
+    
+    // Calculate total notes length
+    const notesLen = config.notes.reduce((acc, note) => acc + (note.content?.length || 0), 0);
+    setTotalNotesLength(notesLen);
   }, [config]);
 
   // Secure Session Verification
@@ -83,8 +88,8 @@ function WizardContent() {
 
   const PLAN_LIMITS = {
     free: { days: 1, notes: 5, gallery: 3, video: false, branding: true, background: false },
-    plus: { days: 7, notes: 15, gallery: 100, video: false, branding: false, background: true },
-    infinite: { days: 14, notes: 500, gallery: 500, video: true, branding: false, background: true }
+    plus: { days: 7, notes: 15, gallery: 20, video: false, branding: false, background: true },
+    infinite: { days: 14, notes: 50, gallery: 50, video: true, branding: false, background: true }
   };
 
   const currentLimits = PLAN_LIMITS[config.plan];
@@ -129,6 +134,12 @@ function WizardContent() {
     setUploading(path);
     try {
       if (isGallery && dayKey) {
+        const totalImages = Object.values(config.galleryImages || {}).reduce((acc, day) => acc + day.length, 0);
+        if (totalImages + files.length > currentLimits.gallery) {
+            alert(`You've reached the limit of ${currentLimits.gallery} photos for your plan.`);
+            setUploading(null);
+            return;
+        }
         const uploadedUrls = [];
         for (let i = 0; i < files.length; i++) {
           const url = await uploadFile(files[i]);
@@ -567,7 +578,7 @@ function WizardContent() {
                                   Feb {day} Gallery
                                 </label>
                                 <span className="text-[10px] bg-white px-2 py-1 rounded-full font-bold text-valentine-soft shadow-sm">
-                                    {images.length} / {currentLimits.gallery === 500 ? '∞' : currentLimits.gallery}
+                                    {images.length} / {currentLimits.gallery === 50 ? '50' : currentLimits.gallery}
                                 </span>
                               </div>
                               
@@ -624,8 +635,20 @@ function WizardContent() {
 
               {step === 5 && (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar text-left">
+                  <div className="flex flex-col gap-1 text-left">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-valentine-soft font-bold uppercase tracking-wider">Secret Notes</p>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded ${totalNotesLength > 7500 ? 'bg-red-100 text-red-600' : 'bg-valentine-cream text-valentine-soft'}`}>
+                        {totalNotesLength.toLocaleString()} / 8,000 Characters
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-valentine-soft italic leading-relaxed">
+                        Total combined characters across all notes to ensure the link works perfectly.
+                    </p>
+                  </div>
+                  
                   <div className="flex items-center justify-between text-left">
-                    <p className="text-sm text-valentine-soft">Write messages that unlock at specific times.</p>
+                    <p className="text-xs text-valentine-soft">Write messages that unlock at specific times.</p>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded ${config.notes.length >= currentLimits.notes ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                         {config.notes.length} / {currentLimits.notes === 500 ? '∞' : currentLimits.notes} Used
                     </span>
@@ -651,9 +674,13 @@ function WizardContent() {
                           type="text" 
                           value={note.content}
                           onChange={(e) => {
-                            const newNotes = [...config.notes];
-                            newNotes[idx].content = e.target.value;
-                            updateConfig('notes', newNotes);
+                            const newContent = e.target.value;
+                            const otherNotesLen = config.notes.reduce((acc, n, i) => i === idx ? acc : acc + (n.content?.length || 0), 0);
+                            if (otherNotesLen + newContent.length <= 8000) {
+                                const newNotes = [...config.notes];
+                                newNotes[idx].content = newContent;
+                                updateConfig('notes', newNotes);
+                            }
                           }}
                           placeholder="My message..."
                           className="flex-grow p-2 rounded-lg border-2 border-valentine-pink/20 outline-none text-sm bg-white focus:border-valentine-red"
@@ -676,6 +703,10 @@ function WizardContent() {
                   {config.notes.length < currentLimits.notes ? (
                     <button 
                         onClick={() => {
+                            if (totalNotesLength >= 8000) {
+                                alert("You've reached the character limit for notes. Please shorten existing notes before adding more.");
+                                return;
+                            }
                             const newNotes = [...config.notes, { id: `note${Date.now()}`, day: 14, content: '' }];
                             updateConfig('notes', newNotes);
                         }}
