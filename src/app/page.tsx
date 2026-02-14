@@ -6,7 +6,7 @@ import Invitation from '@/components/Invitation';
 import Dashboard from '@/components/Dashboard';
 import { useValentine } from '@/utils/ValentineContext';
 import Link from 'next/link';
-import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon, X, Shield, Lock, ArrowLeft } from 'lucide-react';
+import { Heart, Check, Sparkles, Star, Zap, Music, ImageIcon, MessageSquare, Infinity as InfinityIcon, X, Shield, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
@@ -76,20 +76,21 @@ export default function Home() {
                                         <div className="w-8 h-4 bg-gray-300 rounded-full peer peer-checked:bg-valentine-red transition-all shadow-inner"></div>
                                         <div className="absolute left-1 top-1 w-2 h-2 bg-white rounded-full peer-checked:left-5 transition-all shadow-md"></div>
                                     </div>
-                                    <span className="text-[8px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Unlock All</span>
-                                </label>
-                                <button 
-                                    onClick={() => {
-                                        setIsPreviewing(false);
-                                        setPreviewConfig(null);
-                                        localStorage.removeItem('debug_unlock_all');
-                                    }}
-                                    className="px-4 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg text-[10px] uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
-                                >
-                                    <ArrowLeft size={12} /> <span className="hidden xs:inline">Back to Homepage</span><span className="xs:hidden">Exit</span>
-                                </button>
-                            </div>
+                                <span className="text-[8px] font-bold text-valentine-soft uppercase tracking-widest group-hover:text-valentine-red transition-colors">Unlock All</span>
+                            </label>
+                            <button 
+                                onClick={() => {
+                                    setIsPreviewing(false);
+                                    setPreviewConfig(null);
+                                    localStorage.removeItem('debug_unlock_all');
+                                }}
+                                className="px-6 py-2 bg-valentine-red text-white rounded-xl font-bold shadow-lg text-xs uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <ArrowLeft size={14} /> Back to Homepage
+                            </button>
                         </div>
+                    </div>
+
                         
                         <div className="relative">
                             <PreviewApp forceUpdateKey={previewRefreshKey} />
