@@ -107,7 +107,12 @@ function WizardContent() {
         updateConfig(path, url);
       }
     } catch (err: any) {
-      alert(`Upload failed: ${err.message || 'Unknown error'}. Make sure you have added BLOB_READ_WRITE_TOKEN to your .env.local and restarted the server.`);
+      const errorMessage = err.message || 'Unknown error';
+      if (errorMessage.includes('already exists')) {
+        alert("This file was already uploaded. Try renaming it or selecting a different one.");
+      } else {
+        alert(`Upload failed: ${errorMessage}. If you're the developer, check your BLOB_READ_WRITE_TOKEN.`);
+      }
       console.error(err);
     } finally {
       setUploading(null);
