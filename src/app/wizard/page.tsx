@@ -6,6 +6,7 @@ import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowR
 import { ValentineConfig, encodeConfig } from '@/utils/config';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { upload } from '@vercel/blob/client';
 
 function WizardContent() {
   const searchParams = useSearchParams();
@@ -79,11 +80,11 @@ function WizardContent() {
   };
 
   const uploadFile = async (file: File) => {
-    const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-      method: 'POST',
-      body: file,
+    // This calls our /api/upload to get a client token then uploads directly to Vercel
+    const newBlob = await upload(file.name, file, {
+      access: 'public',
+      handleUploadUrl: '/api/upload',
     });
-    const newBlob = await response.json();
     return newBlob.url;
   };
 
@@ -106,7 +107,7 @@ function WizardContent() {
         updateConfig(path, url);
       }
     } catch (err) {
-      alert("Upload failed. Check your internet or vercel blob token.");
+      alert("Upload failed. Make sure you have added BLOB_READ_WRITE_TOKEN to your .env.local and restarted the server.");
       console.error(err);
     } finally {
       setUploading(null);
@@ -331,7 +332,7 @@ function WizardContent() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-valentine-pink/10">
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-valentine-pink/10 text-left">
                     <div className="space-y-2">
                         <label className="block text-sm font-bold text-valentine-soft uppercase flex justify-between">
                             Custom Background Image
@@ -348,7 +349,7 @@ function WizardContent() {
                                         <p className="text-xs font-bold text-valentine-red">Background Set</p>
                                         <button 
                                             onClick={() => updateConfig('backgroundUrl', '')}
-                                            className="text-[10px] text-valentine-soft underline uppercase"
+                                            className="text-[10px] text-valentine-soft underline uppercase font-bold"
                                         >
                                             Remove
                                         </button>
@@ -384,9 +385,9 @@ function WizardContent() {
               {step === 3 && (
                 <div className="space-y-4 text-left">
                   <p className="text-sm text-valentine-soft">Provide Spotify Track IDs for each stage of the countdown.</p>
-                  <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                  <div className="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar space-y-4 text-left">
                     {getDaysArray().map((day) => (
-                        <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl">
+                        <div key={day} className="space-y-2 p-4 bg-valentine-cream/30 rounded-xl text-left">
                         <label className="block text-[10px] font-bold text-valentine-soft uppercase tracking-wider">Feb {day} Track</label>
                         <input 
                             type="text" 
@@ -404,18 +405,18 @@ function WizardContent() {
               {step === 4 && (
                 <div className="space-y-4">
                   {!currentLimits.gallery ? (
-                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30 text-left">
                       <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
                       <h3 className="text-xl font-bold text-valentine-red mb-2">Photo Gallery is Premium</h3>
                       <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Romance</b> plan to upload your favorite memories!</p>
                       <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-valentine-soft">Upload images from your computer for each day.</p>
                       </div>
-                      <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8 text-left">
+                      <div className="max-h-[450px] overflow-y-auto pr-2 custom-scrollbar space-y-8">
                         {getDaysArray().map((day) => {
                           const dayKey = `day${day}`;
                           const images = config.galleryImages?.[dayKey] || [];
@@ -430,7 +431,7 @@ function WizardContent() {
                                 </span>
                               </div>
                               
-                              <div className="space-y-4">
+                              <div className="space-y-4 text-left">
                                 <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed border-valentine-pink/30 rounded-xl p-6 transition-all hover:border-valentine-red cursor-pointer bg-white/50 group ${uploading === `gallery_${dayKey}` ? 'pointer-events-none' : ''}`}>
                                     {uploading === `gallery_${dayKey}` ? (
                                         <Loader2 className="animate-spin text-valentine-red" size={24} />
@@ -450,7 +451,7 @@ function WizardContent() {
                                 </label>
                                 
                                 {images.length > 0 && (
-                                    <div className="grid grid-cols-3 gap-2 mt-4">
+                                    <div className="grid grid-cols-3 gap-2 mt-4 text-left">
                                         {images.map((url, idx) => (
                                             <div key={idx} className="relative group rounded-lg overflow-hidden border-2 border-valentine-pink/20 aspect-square bg-white shadow-sm">
                                                 <img src={url} className="w-full h-full object-cover" alt="" />
@@ -487,8 +488,8 @@ function WizardContent() {
                   </div>
                   
                   {config.notes.map((note, idx) => (
-                    <div key={note.id} className="p-4 bg-valentine-cream/50 rounded-2xl space-y-3 relative group border border-valentine-pink/10 shadow-sm">
-                      <div className="flex gap-4">
+                    <div key={note.id} className="p-4 bg-valentine-cream/50 rounded-2xl space-y-3 relative group border border-valentine-pink/10 shadow-sm text-left">
+                      <div className="flex gap-4 text-left">
                         <select 
                           value={note.day}
                           onChange={(e) => {
@@ -547,19 +548,19 @@ function WizardContent() {
               {step === 6 && (
                 <div className="space-y-4">
                   {!currentLimits.video ? (
-                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                    <div className="p-8 text-center bg-valentine-red/5 rounded-3xl border-2 border-dashed border-valentine-pink/30 text-left">
                       <ImageIcon size={48} className="mx-auto text-valentine-pink mb-4" />
                       <h3 className="text-xl font-bold text-valentine-red mb-2">Secret Cinema is Premium</h3>
                       <p className="text-sm text-valentine-soft mb-6">Upgrade to <b>The Sanctuary</b> plan to upload your own memory movie.</p>
                       <button onClick={() => setStep(1)} className="px-6 py-2 bg-valentine-red text-white rounded-full font-bold shadow-lg">View Plans</button>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <label className="block text-sm font-bold text-valentine-soft uppercase tracking-wider">Secret Cinema Video</label>
                       
                       <div className={`relative rounded-xl border-2 border-dashed p-8 transition-all ${uploading === 'videoUrl' ? 'bg-valentine-cream/30 border-valentine-red' : 'border-valentine-pink/30 bg-white hover:border-valentine-red'}`}>
                         {config.videoUrl ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 text-left">
                                 <div className="aspect-video w-full rounded-lg overflow-hidden border-2 border-valentine-pink/20 bg-black">
                                     <video src={config.videoUrl} className="w-full h-full object-cover" controls />
                                 </div>
@@ -630,7 +631,7 @@ function WizardContent() {
 
               {step === 8 && (
                 <div className="space-y-8 text-center py-10">
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-center">
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check size={40} />
                     </div>
@@ -666,7 +667,7 @@ function WizardContent() {
                       <a 
                         href={generatedLink}
                         target="_blank"
-                        className="w-full text-center text-xs text-valentine-soft underline mt-2"
+                        className="w-full text-center text-xs text-valentine-soft underline mt-2 font-bold"
                       >
                         Preview Sanctuary
                       </a>
