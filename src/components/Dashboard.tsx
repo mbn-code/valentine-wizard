@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTimeTogether, isTrackUnlocked, getTimeUntil } from '@/utils/date';
-import { Heart, Music, Clock, RefreshCw, Bell, Download, X } from 'lucide-react';
+import { Heart, Music, Clock, RefreshCw, Bell, Download, X, Lock } from 'lucide-react';
 import Gallery from './Gallery';
 import SecretCinema from './SecretCinema';
 import Ambiance from './Ambiance';
-import confetti from 'canvas-confetti';
+import Link from 'next/link';
 import { useValentine } from '@/utils/ValentineContext';
 
 declare global {
@@ -72,9 +72,6 @@ const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: numbe
         <Clock size={24} aria-hidden="true" />
         <div className="group relative">
           <span className="font-mono text-xs">{String(timeLeft.hours).padStart(2, '0')}h:{String(timeLeft.minutes).padStart(2, '0')}m:{String(timeLeft.seconds).padStart(2, '0')}s</span>
-          <div className="absolute left-1/2 -translate-x-1/2 mt-2 px-3 py-1 rounded bg-black/80 text-[10px] text-white opacity-0 group-hover:opacity-100 transition text-center pointer-events-none z-10 whitespace-nowrap">
-            Unlock available in {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
-          </div>
         </div>
       </div>
     );
@@ -84,7 +81,7 @@ const UnlockableNote = ({ id, day, hour = 0, content }: { id: string, day: numbe
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-2 text-valentine-soft">
         <button 
-          className="bg-valentine-red text-white px-4 py-2 rounded-full shadow font-bold hover:bg-valentine-red/90 transition-all focus:outline-none relative group"
+          className="bg-valentine-red text-white px-4 py-2 rounded-full shadow font-bold hover:bg-valentine-red/90 transition-all focus:outline-none"
           onClick={handleUnlock}
         >
           Unlock
@@ -99,15 +96,9 @@ const Dashboard = () => {
   const { config } = useValentine();
   const [time, setTime] = useState(getTimeTogether());
   const [showAdmin, setShowAdmin] = useState(false);
-  const [isDebugUnlocked, setIsDebugUnlocked] = useState(false);
-  const [isLocalhost, setIsLocalhost] = useState(false);
   const [tapCount, setTapCount] = useState(0);
-  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    setIsLocalhost(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    setIsDebugUnlocked(localStorage.getItem('debug_unlock_all') === 'true');
-
     const timer = setInterval(() => {
       setTime(getTimeTogether());
     }, 1000);
@@ -159,23 +150,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-valentine-cream p-4 md:p-8 relative">
+    <div className="min-h-screen bg-valentine-cream p-4 md:p-8 relative pb-32">
       <Ambiance />
       
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: 20, x: '-50%' }}
-            className="fixed bottom-8 left-1/2 z-[300] bg-white border-2 border-valentine-red px-6 py-3 rounded-full shadow-xl flex items-center gap-3"
-          >
-            <Bell className="text-valentine-red animate-bounce" size={20} aria-hidden="true" />
-            <span className="text-valentine-red font-bold text-sm">New memory unlocked!</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="max-w-4xl mx-auto space-y-12 relative z-10">
         <header className="text-center space-y-2">
           <motion.h1 
@@ -217,7 +194,12 @@ const Dashboard = () => {
                     {item.title}
                   </h3>
                   <div className="flex-grow">
-                    {isTrackUnlocked(item.day) ? (
+                    {(config.plan === 'free' && item.day < 14) ? (
+                        <div className="flex flex-col items-center justify-center h-full text-valentine-soft/40 p-4">
+                            <Lock size={24} className="mb-2" />
+                            <p className="text-[10px] uppercase font-bold tracking-widest">Locked in Free Plan</p>
+                        </div>
+                    ) : isTrackUnlocked(item.day) && item.id ? (
                       <div className="w-full h-full min-h-[152px]">
                         <iframe 
                           style={{ borderRadius: '12px' }} 
@@ -260,24 +242,9 @@ const Dashboard = () => {
                     day={note.day} 
                     hour={note.hour}
                     content={
-                      note.isSpotify ? (
-                        <div className="space-y-4">
-                          <p className="italic text-valentine-red text-center">{note.content}</p>
-                          <iframe 
-                            style={{ borderRadius: '12px' }} 
-                            src={`https://open.spotify.com/embed/track/${note.spotifyId}?utm_source=generator`} 
-                            width="100%" height="152" frameBorder="0" 
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                            loading="lazy"
-                          ></iframe>
-                        </div>
-                      ) : (
-                        <div className="italic text-base text-valentine-red p-2 leading-relaxed h-full flex items-center justify-center text-center break-words">
-                          {note.content.startsWith('http') ? (
-                             <a href={note.content} target="_blank" rel="noopener noreferrer" className="hover:underline">{note.content}</a>
-                          ) : note.content}
-                        </div>
-                      )
+                      <div className="italic text-base text-valentine-red p-2 leading-relaxed h-full flex items-center justify-center text-center break-words">
+                        {note.content}
+                      </div>
                     }
                   />
                 </div>
@@ -286,9 +253,32 @@ const Dashboard = () => {
           </div>
         </section>
 
-        <Gallery />
-        <SecretCinema />
+        {config.plan === 'pro' && (
+            <>
+                <Gallery />
+                <SecretCinema />
+            </>
+        )}
+
+        {config.plan === 'free' && (
+            <div className="mt-20 p-8 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-valentine-pink/30">
+                <Lock size={40} className="mx-auto text-valentine-soft mb-4" />
+                <h3 className="text-xl font-bold text-valentine-red mb-2">Want a personal Photo Gallery & Secret Cinema?</h3>
+                <p className="text-sm text-valentine-soft mb-6">Ask your partner to upgrade to the Pro plan!</p>
+                <Link href="/wizard" className="px-8 py-3 bg-valentine-red text-white rounded-full font-bold shadow-lg inline-block">Create your own Sanctuary</Link>
+            </div>
+        )}
       </div>
+
+      {/* Free Plan Footer */}
+      {config.plan === 'free' && (
+        <div className="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-valentine-pink/20 text-center z-50">
+            <p className="text-xs text-valentine-soft font-medium flex items-center justify-center gap-2">
+                Powered by <span className="font-bold text-valentine-red uppercase tracking-tighter">Valentine Wizard</span>
+                <Link href="/wizard" className="underline hover:text-valentine-red ml-2">Create yours →</Link>
+            </p>
+        </div>
+      )}
 
       {showAdmin && (
         <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-8">

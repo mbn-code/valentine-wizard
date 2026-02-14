@@ -163,6 +163,12 @@ const Invitation = ({ onComplete }: InvitationProps) => {
             <p className="text-lg font-medium text-valentine-red animate-pulse">
               Come back on Feb 14th for your full experience...
             </p>
+            
+            {config?.plan === 'free' && (
+              <div className="pt-12">
+                <p className="text-[10px] text-valentine-soft uppercase tracking-[0.2em] font-bold">Powered by Valentine Wizard</p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

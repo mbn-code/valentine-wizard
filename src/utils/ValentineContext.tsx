@@ -12,6 +12,7 @@ interface ValentineContextType {
 const ValentineContext = createContext<ValentineContextType | undefined>(undefined);
 
 const DEFAULT_CONFIG: ValentineConfig = {
+  plan: 'pro',
   names: {
     partner1: "You",
     partner2: "Me"
