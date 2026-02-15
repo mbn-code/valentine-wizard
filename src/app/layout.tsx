@@ -13,19 +13,20 @@ const sacramento = Sacramento({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://valentize.vercel.app"),
-  title: "Valentine Wizard | Create Your Digital Sanctuary",
-  description: "Surprise your partner with a personalized interactive sanctuary. Add photos, music, and secret notes that unlock over time.",
+  metadataBase: new URL("https://valentine-wizard.vercel.app"),
+  title: "Valentine Wizard ❤️ | Your Digital Sanctuary",
+  description: "Surprise your partner with a personalized interactive sanctuary. Add photos, music, and secret notes that unlock over time. The perfect digital gift.",
   openGraph: {
-    title: "Valentine Wizard",
-    description: "The ultimate digital gift for your significant other.",
-    url: "https://valentize.vercel.app",
+    title: "Valentine Wizard | Create Your Story",
+    description: "The ultimate digital gift for your significant other. Interactive memories, secret videos, and timed reveals.",
+    url: "https://valentine-wizard.vercel.app",
     siteName: "Valentine Wizard",
     images: [
       {
-        url: "/og-image.png", // User should add this later
+        url: "/og-image.png",
         width: 1200,
         height: 630,
+        alt: "Valentine Wizard Sanctuary Preview",
       },
     ],
     locale: "en_US",
@@ -33,10 +34,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Valentine Wizard",
-    description: "The ultimate digital gift for your significant other.",
+    title: "Valentine Wizard ❤️",
+    description: "Create a digital sanctuary for your partner. Photos, music, and secret notes.",
     images: ["/og-image.png"],
   },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({

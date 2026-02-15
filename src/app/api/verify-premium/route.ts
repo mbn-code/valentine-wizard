@@ -9,7 +9,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Missing parameters' }, { status: 400 });
     }
 
-    const signingSecret = process.env.SIGNING_SECRET || 'fallback-secret-for-dev-only-change-this';
+    const signingSecret = process.env.SIGNING_SECRET;
+    if (!signingSecret) {
+        throw new Error('SIGNING_SECRET not configured');
+    }
 
     const isValid = await verifyPremiumPlan(plan, partnerNames, signature, signingSecret);
 

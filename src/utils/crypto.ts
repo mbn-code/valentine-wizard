@@ -147,3 +147,35 @@ export async function verifyPremiumPlan(plan: string, partnerNames: string, sign
   const payload = textEncoder.encode(`${plan}:${partnerNames}`);
   return crypto.subtle.verify('HMAC', key, fromBase64URL(signature), payload);
 }
+
+/**
+ * Generic HMAC Signature for short-lived tokens
+ */
+export async function signData(data: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    textEncoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', key, textEncoder.encode(data));
+  return toBase64URL(signature);
+}
+
+export async function verifyDataSignature(data: string, signature: string, secret: string): Promise<boolean> {
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      textEncoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    return crypto.subtle.verify('HMAC', key, fromBase64URL(signature), textEncoder.encode(data));
+  } catch {
+    return false;
+  }
+}

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import Image from 'next/image';
 
 interface LightboxProps {
   images: { src: string; id: string }[];
@@ -69,11 +70,14 @@ const Lightbox = ({ images, currentIndex, onClose, onPrev, onNext }: LightboxPro
           onClick={(e) => e.stopPropagation()}
         >
           {isScratched ? (
-            <img
-              src={currentImage.src}
-              alt="Gallery view"
-              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
-            />
+            <div className="relative max-w-full h-[85vh] aspect-[3/4]">
+              <Image
+                src={currentImage.src}
+                alt="Gallery view"
+                fill
+                className="object-contain rounded-lg shadow-2xl"
+              />
+            </div>
           ) : (
             <div className="w-[80vw] h-[60vh] bg-white/10 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-white/20 space-y-4">
               <Lock size={64} aria-hidden="true" className="text-white/20" />

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Music, ImageIcon, MessageSquare, Lock, Save, Copy, Check, ArrowRight, ArrowLeft, X, Sparkles, Star, Zap, Info, Loader2 as LucideLoader, Plus, Trash2, FileText, Upload, Shield } from 'lucide-react';
 import { ValentineConfig, SanctuaryPayload } from '@/utils/config';
 import { generateMasterKey, exportKey, encryptData, deriveKeyFromPasscode, toBase64URL } from '@/utils/crypto';
+import { compressImage } from '@/utils/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
@@ -111,10 +112,29 @@ function WizardContent() {
     setConfig(newConfig);
   };
 
+  const getUploadChallenge = async () => {
+    const res = await fetch('/api/upload/challenge');
+    return await res.json();
+  };
+
   const uploadFile = async (file: File) => {
-    const newBlob = await upload(file.name, file, {
+    let fileToUpload: File | Blob = file;
+    
+    // Compress if it's an image
+    if (file.type.startsWith('image/')) {
+        try {
+            fileToUpload = await compressImage(file);
+        } catch (e) {
+            console.error("Compression failed, uploading original", e);
+        }
+    }
+
+    const challenge = await getUploadChallenge();
+
+    const newBlob = await upload(file.name, fileToUpload, {
       access: 'public',
       handleUploadUrl: '/api/upload',
+      clientPayload: JSON.stringify(challenge)
     });
     return newBlob.url;
   };

@@ -31,6 +31,6 @@ This version of the Valentine Wizard includes a tiered structure:
 
 ## Setup
 1. Copy `.env.example` to `.env.local` and add your Stripe keys.
-2. **Crucial:** Enable **Vercel Blob** in your Vercel Dashboard (Storage tab) and add the `BLOB_READ_WRITE_TOKEN` to your environment variables. This allows users to upload photos/videos directly from their PC.
+2. **Crucial:** Enable **Vercel Blob** in your Vercel Dashboard (Storage tab) and add the `BLOB_READ_WRITE_TOKEN` to your environment variables. Also add a `SIGNING_SECRET` (any long random string) for secure uploads and payment verification.
 3. `npm install`
 4. `npm run dev`

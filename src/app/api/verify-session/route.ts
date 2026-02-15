@@ -15,7 +15,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
   }
 
-  const signingSecret = process.env.SIGNING_SECRET || 'fallback-secret-for-dev-only-change-this';
+  const signingSecret = process.env.SIGNING_SECRET;
+  if (!signingSecret) {
+    return NextResponse.json({ error: 'Signing secret not configured' }, { status: 500 });
+  }
 
   const stripe = new Stripe(secretKey, {
     apiVersion: '2024-12-18.acacia' as any,

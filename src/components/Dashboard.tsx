@@ -10,6 +10,7 @@ import Ambiance from './Ambiance';
 import Link from 'next/link';
 import { useValentine } from '@/utils/ValentineContext';
 import DOMPurify from 'isomorphic-dompurify';
+import Image from 'next/image';
 
 const LiveCountdown = ({ day, hour = 0 }: { day: number, hour?: number }) => {
   const [timeLeft, setTimeLeft] = useState(getTimeUntil(day, hour));
@@ -212,13 +213,15 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-valentine-cream p-4 md:p-8 relative pb-32">
       {config.backgroundUrl && (
-        <div 
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-          style={{ 
-            backgroundImage: `url(${config.backgroundUrl})`,
-            opacity: 0.15
-          }}
-        />
+        <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.15]">
+          <Image
+            src={config.backgroundUrl}
+            alt="Background"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
       )}
       <Ambiance />
       

@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 interface ScratchOffImageProps {
   src: string;
@@ -141,12 +142,13 @@ const ScratchOffImage = ({ src, alt, id, borderRadius, chromeColor, filter }: Sc
 
   return (
     <div className="relative w-full overflow-hidden" style={{ borderRadius }}>
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={800}
+        height={800}
         className="w-full h-auto block border-4"
         style={{ borderRadius, borderColor: chromeColor, filter }}
-        loading="lazy"
         onLoad={() => setImageLoaded(true)}
       />
       

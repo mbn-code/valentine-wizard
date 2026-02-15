@@ -31,7 +31,7 @@ export function getCurrentPhase() {
 }
 
 export function isTrackUnlocked(day: number, hour: number = 0) {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && process.env.NODE_ENV !== 'production') {
     const debugUnlock = localStorage.getItem("debug_unlock_all") === "true";
     if (debugUnlock) return true;
   }
