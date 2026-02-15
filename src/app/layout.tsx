@@ -4,6 +4,8 @@ import "./globals.css";
 import HeartCursor from "@/components/HeartCursor";
 import CookieBanner from "@/components/CookieBanner";
 import { ValentineProvider } from "@/utils/ValentineContext";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const sacramento = Sacramento({ 
@@ -54,6 +56,8 @@ export default function RootLayout({
           <HeartCursor />
           <CookieBanner />
           {children}
+          <Analytics />
+          <SpeedInsights />
         </ValentineProvider>
       </body>
     </html>
